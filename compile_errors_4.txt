@@ -1,0 +1,5 @@
+src/core/repositories/base.repository.ts(13,17): error TS2740: Type '{}' is missing the following properties from type 'Query<any, any, {}, unknown, "find", Record<string, never>>': _mongooseOptions, exec, $where, all, and 94 more.
+src/core/repositories/base.repository.ts(62,5): error TS2740: Type '{}' is missing the following properties from type 'Query<any, any, {}, unknown, "find", Record<string, never>>': _mongooseOptions, exec, $where, all, and 94 more.
+src/modules/users/controllers/user.controller.spec.ts(2,33): error TS2307: Cannot find module './users.controller' or its corresponding type declarations.
+src/modules/users/controllers/user.controller.spec.ts(3,30): error TS2307: Cannot find module './users.service' or its corresponding type declarations.
+src/modules/users/services/user.service.spec.ts(2,30): error TS2307: Cannot find module './users.service' or its corresponding type declarations.

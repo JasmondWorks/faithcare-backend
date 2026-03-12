@@ -1,0 +1,12 @@
+src/app.module.ts(6,28): error TS2307: Cannot find module './auth/auth.module' or its corresponding type declarations.
+src/core/repositories/base.repository.ts(1,17): error TS2614: Module '"mongoose"' has no exported member 'FilterQuery'. Did you mean to use 'import FilterQuery from "mongoose"' instead?
+src/core/repositories/base.repository.ts(8,5): error TS2322: Type '(Document<unknown, {}, T, {}, DefaultSchemaOptions> & { _id: ObjectId; } & { __v: number; }) | (Document<unknown, {}, T, {}, DefaultSchemaOptions> & { ...; } & { ...; } & { ...; }) | (Document<...> & ... 2 more ... & { ...; }) | (Document<...> & ... 3 more ... & { ...; })' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to '(Document<unknown, {}, T, {}, DefaultSchemaOptions> & { _id: ObjectId; } & { __v: number; }) | (Document<unknown, {}, T, {}, DefaultSchemaOptions> & { ...; } & { ...; } & { ...; }) | (Document<...> & ... 2 more ... & { ...; }) | (Document<...> & ... 3 more ... & { ...; })'.
+src/modules/users/controllers/user.controller.spec.ts(2,33): error TS2307: Cannot find module './users.controller' or its corresponding type declarations.
+src/modules/users/controllers/user.controller.spec.ts(3,30): error TS2307: Cannot find module './users.service' or its corresponding type declarations.
+src/modules/users/controllers/user.controller.ts(30,30): error TS2339: Property 'findOne' does not exist on type 'UsersService'.
+src/modules/users/controllers/user.controller.ts(35,37): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/modules/users/controllers/user.controller.ts(40,30): error TS2339: Property 'remove' does not exist on type 'UsersService'.
+src/modules/users/services/user.service.spec.ts(2,30): error TS2307: Cannot find module './users.service' or its corresponding type declarations.
+src/modules/users/users.module.ts(2,30): error TS2307: Cannot find module './users.service' or its corresponding type declarations.
+src/modules/users/users.module.ts(3,33): error TS2307: Cannot find module './users.controller' or its corresponding type declarations.

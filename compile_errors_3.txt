@@ -1,0 +1,9 @@
+src/core/repositories/base.repository.ts(11,34): error TS2694: Namespace '"mongoose"' has no exported member 'FilterQuery'.
+src/core/repositories/base.repository.ts(18,34): error TS2694: Namespace '"mongoose"' has no exported member 'FilterQuery'.
+src/core/repositories/base.repository.ts(26,19): error TS2694: Namespace '"mongoose"' has no exported member 'FilterQuery'.
+src/core/repositories/base.repository.ts(60,22): error TS2694: Namespace '"mongoose"' has no exported member 'FilterQuery'.
+src/core/repositories/base.repository.ts(70,59): error TS2694: Namespace '"mongoose"' has no exported member 'FilterQuery'.
+src/core/repositories/base.repository.ts(77,21): error TS2694: Namespace '"mongoose"' has no exported member 'FilterQuery'.
+src/modules/users/controllers/user.controller.spec.ts(2,33): error TS2307: Cannot find module './users.controller' or its corresponding type declarations.
+src/modules/users/controllers/user.controller.spec.ts(3,30): error TS2307: Cannot find module './users.service' or its corresponding type declarations.
+src/modules/users/services/user.service.spec.ts(2,30): error TS2307: Cannot find module './users.service' or its corresponding type declarations.
