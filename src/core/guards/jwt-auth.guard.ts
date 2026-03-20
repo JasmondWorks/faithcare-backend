@@ -18,8 +18,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any) {
-    if (err || !user) throw err ?? new UnauthorizedException('Invalid or missing access token');
+  handleRequest(err: any, user: any, info: any) {
+    if (err || !user) {
+      const isExpired = info?.name === 'TokenExpiredError';
+      const message = isExpired
+        ? 'Your session has expired. Please log in again.'
+        : 'You are not logged in. Please log in to access this resource.';
+      throw err ?? new UnauthorizedException(message);
+    }
     return user;
   }
 }
