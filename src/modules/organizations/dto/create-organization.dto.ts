@@ -1,16 +1,25 @@
-import { IsEnum, IsMongoId, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Denomination } from 'src/core/enums/denomination.enum';
 import { MemberCountRange } from 'src/core/enums/member-count-range.enum';
 
 export class CreateOrganizationDto {
-  @ApiProperty({ example: '64a1f2c3e4b5d6e7f8a9b0c1' })
-  @IsMongoId()
-  createdBy: string;
-
   @ApiProperty({ example: 'Prime Church Lagos' })
   @IsString()
   name: string;
+
+  @ApiPropertyOptional({
+    example: 'prime-church-lagos',
+    description: 'URL-safe unique handle (auto-generated from name if omitted)',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-z0-9-]+$/, { message: 'slug must be lowercase letters, numbers and hyphens only' })
+  slug?: string;
+
+  @ApiProperty({ example: 'primechurchofficial@example.com' })
+  @IsEmail()
+  email: string;
 
   @ApiProperty({ enum: Denomination, example: Denomination.PENTECOSTAL })
   @IsEnum(Denomination)

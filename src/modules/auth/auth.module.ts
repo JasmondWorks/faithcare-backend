@@ -10,6 +10,7 @@ import { User, UserSchema } from '../users/schemas/user.schema';
 import { Otp, OtpSchema } from './schemas/otp.schema';
 import { JwtStrategy } from 'src/core/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
+import { OrganizationsModule } from '../organizations/organizations.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
       { name: User.name, schema: UserSchema },
       { name: Otp.name, schema: OtpSchema },
     ]),
+    OrganizationsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, EmailService, JwtStrategy, JwtRefreshStrategy],

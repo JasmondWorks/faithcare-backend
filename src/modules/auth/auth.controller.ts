@@ -4,10 +4,12 @@ import {
   Get,
   Body,
   Query,
+  Param,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
@@ -101,5 +103,23 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'User not found' })
   resendOtp(@Body() resendOtpDto: ResendOtpDto) {
     return this.authService.resendOtp(resendOtpDto);
+  }
+
+  @ApiBearerAuth('access-token')
+  @Post('switch-organization/:organizationId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Exchange global token for an org-scoped token',
+    description:
+      'Returns a new access token containing activeOrganizationId and activeOrganizationRole. ' +
+      'Use this token for all subsequent requests scoped to that organization.',
+  })
+  @ApiResponse({ status: 200, description: 'Org-scoped token issued' })
+  @ApiResponse({ status: 401, description: 'Not an active member of this organization' })
+  switchOrganization(
+    @Param('organizationId') organizationId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.authService.switchOrganization(user.id, organizationId);
   }
 }

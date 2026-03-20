@@ -4,11 +4,12 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 export interface JwtPayload {
-  sub: string;       // user id
+  sub: string;
   email: string;
   role: string;
-  organizationId?: string;
-  organizationRole?: string;
+  /** Present only in org-scoped tokens issued by switchOrganization() */
+  activeOrganizationId?: string;
+  activeOrganizationRole?: string;
   iat?: number;
   exp?: number;
 }
@@ -29,8 +30,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       id: payload.sub,
       email: payload.email,
       role: payload.role,
-      organizationId: payload.organizationId,
-      organizationRole: payload.organizationRole,
+      activeOrganizationId: payload.activeOrganizationId,
+      activeOrganizationRole: payload.activeOrganizationRole,
     };
   }
 }

@@ -8,11 +8,19 @@ export type OrganizationDocument = Organization & Document;
 
 @Schema({ timestamps: true })
 export class Organization extends BaseSchema {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  createdBy: Types.ObjectId;
-
   @Prop({ required: true })
   name: string;
+
+  // URL-safe unique handle, e.g. "prime-church-lagos" — used for tenant resolution
+  @Prop({ unique: true, lowercase: true, trim: true })
+  slug: string;
+
+  @Prop({ required: true })
+  email: string;
+
+  // Stored for audit trail; access control is governed entirely by Membership
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  createdBy: Types.ObjectId;
 
   @Prop({ enum: Denomination, required: true })
   denomination: Denomination;

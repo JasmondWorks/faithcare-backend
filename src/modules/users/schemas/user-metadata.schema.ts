@@ -22,8 +22,8 @@ export class UserMetaData extends BaseSchema {
   @Prop({ default: null })
   location?: string;
 
-  @Prop({ default: null })
-  churchName?: string;
+  @Prop({ type: Types.ObjectId, ref: 'Organization', default: null })
+  organizationId?: Types.ObjectId | null;
 
   @Prop({ type: [Object], default: null })
   spiritualGoals?: SpiritualGoals[] | null;

@@ -42,10 +42,10 @@ export class CreateUserMetaDataDto {
   @IsString()
   location?: string;
 
-  @ApiPropertyOptional({ example: 'Prime Church Lagos' })
+  @ApiPropertyOptional({ example: '64a1f2c3e4b5d6e7f8a9b0c1', description: 'ID of the organization (church) the user belongs to' })
   @IsOptional()
-  @IsString()
-  churchName?: string;
+  @IsMongoId()
+  organizationId?: string;
 
   @ApiPropertyOptional({ type: () => SpiritualGoalsDto, isArray: true })
   @IsOptional()

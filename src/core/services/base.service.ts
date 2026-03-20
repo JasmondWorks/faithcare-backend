@@ -24,4 +24,8 @@ export abstract class BaseService<_T> {
   delete(id: string) {
     return this.repository.delete(id);
   }
+
+  softDelete(id: string) {
+    return this.repository.softDelete(id);
+  }
 }
