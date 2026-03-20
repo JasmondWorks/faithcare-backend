@@ -44,6 +44,11 @@ async function bootstrap(): Promise<void> {
   server.get('/api/openapi.json', (_req: Request, res: Response) => res.json(document));
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: { persistAuthorization: true },
+    customCssUrl: 'https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css',
+    customJs: [
+      'https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-bundle.js',
+      'https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui-standalone-preset.js',
+    ],
   });
 
   await app.init();
