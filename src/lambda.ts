@@ -15,8 +15,9 @@ import { AppModule } from './app.module';
 
 const server = express();
 
-let bootstrapPromise: Promise<void> | null = null;
 let isReady = false;
+let bootstrapError: Error | null = null;
+let bootstrapPromise: Promise<void> | null = null;
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
@@ -49,14 +50,25 @@ async function bootstrap(): Promise<void> {
   isReady = true;
 }
 
-// Start bootstrapping immediately so the first cold-start request
-// doesn't block from scratch on every invocation.
-bootstrapPromise = bootstrap().catch((err) => {
+// Kick off bootstrap immediately so the first cold-start request
+// doesn't wait from scratch on every invocation.
+bootstrapPromise = bootstrap().catch((err: Error) => {
   console.error('[Lambda] Bootstrap failed:', err);
-  process.exit(1);
+  bootstrapError = err;
 });
 
 export default async (req: Request, res: Response): Promise<void> => {
-  if (!isReady) await bootstrapPromise;
+  if (!isReady) {
+    await bootstrapPromise;
+  }
+
+  if (bootstrapError) {
+    res.status(500).json({
+      statusCode: 500,
+      message: 'Service failed to initialize. Check server logs.',
+    });
+    return;
+  }
+
   server(req, res);
 };
