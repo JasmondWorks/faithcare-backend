@@ -21,7 +21,7 @@ export class Membership extends BaseSchema {
   @Prop({ enum: MembershipStatus, default: MembershipStatus.ACTIVE })
   status: MembershipStatus;
 
-  @Prop({ enum: OrganizationRole, default: null })
+  @Prop({ type: String, enum: [...Object.values(OrganizationRole), null], default: null })
   organizationRole: OrganizationRole | null;
 
   @Prop({ type: Types.ObjectId, ref: 'User', default: null })
