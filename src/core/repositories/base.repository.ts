@@ -3,7 +3,7 @@ import { Model, UpdateQuery } from 'mongoose';
 export abstract class BaseRepository<T> {
   constructor(protected readonly model: Model<T>) {}
 
-  async create(data: Partial<T>): Promise<T> {
+  async create(data: any): Promise<T> {
     const doc = new this.model(data);
     return (await doc.save()) as unknown as T;
   }
