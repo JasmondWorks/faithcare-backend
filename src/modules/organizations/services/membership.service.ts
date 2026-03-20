@@ -10,6 +10,7 @@ import { MembershipRepository } from '../repositories/membership.repository';
 import { User, UserDocument } from 'src/modules/users/schemas/user.schema';
 import { MembershipRole } from 'src/core/enums/membership-role.enum';
 import { MembershipStatus } from 'src/core/enums/membership-status.enum';
+import { OrganizationRole } from 'src/core/enums/organization-role.enum';
 import { InviteMemberDto } from '../dto/invite-member.dto';
 import { UpdateMemberRoleDto } from '../dto/update-member-role.dto';
 
@@ -31,12 +32,13 @@ export class MembershipService {
   }
 
   /** Create OWNER membership when user creates an org */
-  async createOwnership(userId: string, organizationId: string) {
+  async createOwnership(userId: string, organizationId: string, organizationRole: OrganizationRole) {
     return this.membershipRepo.create({
       userId,
       organizationId,
       role: MembershipRole.OWNER,
       status: MembershipStatus.ACTIVE,
+      organizationRole,
       invitedBy: null,
     });
   }

@@ -38,6 +38,7 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     await this.membershipService.createOwnership(
       createdByUserId,
       (org._id as any).toString(),
+      dto.organizationRole,
     );
 
     return org;

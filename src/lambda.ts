@@ -41,8 +41,8 @@ async function bootstrap(): Promise<void> {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  server.get('/api/openapi.json', (_req: Request, res: Response) => res.json(document));
-  SwaggerModule.setup('api/docs', app, document, {
+  server.get('/api/v1/openapi.json', (_req: Request, res: Response) => res.json(document));
+  SwaggerModule.setup('api/v1/docs', app, document, {
     swaggerOptions: { persistAuthorization: true, tagsSorter: 'alpha', operationsSorter: 'alpha' },
     customCssUrl: 'https://unpkg.com/swagger-ui-dist@5.31.0/swagger-ui.css',
     customJs: [

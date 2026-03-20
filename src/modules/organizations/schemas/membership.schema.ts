@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 import { BaseSchema } from 'src/core/database/base.schema';
 import { MembershipRole } from 'src/core/enums/membership-role.enum';
 import { MembershipStatus } from 'src/core/enums/membership-status.enum';
+import { OrganizationRole } from 'src/core/enums/organization-role.enum';
 
 export type MembershipDocument = Membership & Document;
 
@@ -19,6 +20,9 @@ export class Membership extends BaseSchema {
 
   @Prop({ enum: MembershipStatus, default: MembershipStatus.ACTIVE })
   status: MembershipStatus;
+
+  @Prop({ enum: OrganizationRole, default: null })
+  organizationRole: OrganizationRole | null;
 
   @Prop({ type: Types.ObjectId, ref: 'User', default: null })
   invitedBy: Types.ObjectId | null;

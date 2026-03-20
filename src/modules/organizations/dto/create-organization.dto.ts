@@ -2,6 +2,7 @@ import { IsEmail, IsEnum, IsOptional, IsString, Matches } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Denomination } from 'src/core/enums/denomination.enum';
 import { MemberCountRange } from 'src/core/enums/member-count-range.enum';
+import { OrganizationRole } from 'src/core/enums/organization-role.enum';
 
 export class CreateOrganizationDto {
   @ApiProperty({ example: 'Prime Church Lagos' })
@@ -53,4 +54,8 @@ export class CreateOrganizationDto {
   @ApiProperty({ enum: MemberCountRange, example: MemberCountRange.RANGE_101_250 })
   @IsEnum(MemberCountRange)
   memberCountRange: MemberCountRange;
+
+  @ApiProperty({ enum: OrganizationRole, example: OrganizationRole.SENIOR_PASTOR, description: "The creator's role/title within the church" })
+  @IsEnum(OrganizationRole)
+  organizationRole: OrganizationRole;
 }

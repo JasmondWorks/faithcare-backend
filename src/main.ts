@@ -37,8 +37,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  // ── Swagger UI at /api/docs ────────────────────────────────────
-  SwaggerModule.setup('api/docs', app, document, {
+  // ── Swagger UI at /api/v1/docs ────────────────────────────────────
+  SwaggerModule.setup('api/v1/docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
       tagsSorter: 'alpha',
@@ -54,7 +54,7 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   console.log(`\nFaithCare API running on: http://localhost:${port}`);
-  console.log(`API Docs (Swagger UI):    http://localhost:${port}/api/docs`);
-  console.log(`OpenAPI JSON:             http://localhost:${port}/api/docs-json\n`);
+  console.log(`API Docs (Swagger UI):    http://localhost:${port}/api/v1/docs`);
+  console.log(`OpenAPI JSON:             http://localhost:${port}/api/v1/docs-json\n`);
 }
 bootstrap();

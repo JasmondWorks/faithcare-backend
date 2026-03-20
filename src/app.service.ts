@@ -7,7 +7,7 @@ export class AppService {
       success: true,
       message: 'Welcome to the FaithCare API',
       version: '1.0',
-      docs: '/api/docs',
+      docs: '/api/v1/docs',
     };
   }
 }
