@@ -15,10 +15,11 @@ export class MessageLog extends BaseSchema {
   @Prop({ type: Types.ObjectId, ref: 'FollowUpTemplate', required: true })
   templateId: Types.ObjectId;
 
-  @Prop({ enum: ['whatsapp', 'email', 'sms'], required: true })
+  @Prop({ type: String, enum: ['whatsapp', 'email', 'sms'], required: true })
   channel: string;
 
   @Prop({
+    type: String,
     enum: ['queued', 'sent', 'delivered', 'failed'],
     default: 'queued',
   })

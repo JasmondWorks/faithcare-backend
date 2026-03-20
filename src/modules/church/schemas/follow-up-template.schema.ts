@@ -12,10 +12,10 @@ export class FollowUpTemplate extends BaseSchema {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ enum: ['on_registration', 'day_3', 'day_7', 'manual'], default: 'manual' })
+  @Prop({ type: String, enum: ['on_registration', 'day_3', 'day_7', 'manual'], default: 'manual' })
   trigger: string;
 
-  @Prop({ enum: ['whatsapp', 'email', 'sms'], default: 'whatsapp' })
+  @Prop({ type: String, enum: ['whatsapp', 'email', 'sms'], default: 'whatsapp' })
   channel: string;
 
   @Prop({ required: true })

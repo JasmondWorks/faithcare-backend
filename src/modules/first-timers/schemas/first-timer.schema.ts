@@ -21,13 +21,13 @@ export class FirstTimer extends BaseSchema {
   @Prop({ default: null })
   prayerRequest?: string;
 
-  @Prop({ enum: ['first_time', 'second_time'], default: 'first_time' })
+  @Prop({ type: String, enum: ['first_time', 'second_time'], default: 'first_time' })
   visitType: 'first_time' | 'second_time';
 
   @Prop({ type: Types.ObjectId, ref: 'FirstTimer', default: null })
   firstTimerId?: Types.ObjectId | null;
 
-  @Prop({ enum: ['PENDING', 'CONTACTED', 'FOLLOWED_UP'], default: 'PENDING' })
+  @Prop({ type: String, enum: ['PENDING', 'CONTACTED', 'FOLLOWED_UP'], default: 'PENDING' })
   status: 'PENDING' | 'CONTACTED' | 'FOLLOWED_UP';
 
   @Prop({ default: null })

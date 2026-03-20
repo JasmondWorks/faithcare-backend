@@ -13,7 +13,7 @@ export class PrayerRequest extends BaseSchema {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ enum: PrayerRequestStatus, default: PrayerRequestStatus.PENDING })
+  @Prop({ type: String, enum: PrayerRequestStatus, default: PrayerRequestStatus.PENDING })
   status: PrayerRequestStatus;
 
   @Prop({ required: true })

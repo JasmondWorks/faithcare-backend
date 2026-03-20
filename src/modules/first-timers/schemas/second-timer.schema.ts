@@ -24,7 +24,7 @@ export class SecondTimer extends BaseSchema {
   @Prop({ default: null })
   prayerRequest?: string;
 
-  @Prop({ enum: ['FIRST_TIMER', 'SECOND_TIMER'], default: 'SECOND_TIMER' })
+  @Prop({ type: String, enum: ['FIRST_TIMER', 'SECOND_TIMER'], default: 'SECOND_TIMER' })
   status: 'FIRST_TIMER' | 'SECOND_TIMER';
 }
 

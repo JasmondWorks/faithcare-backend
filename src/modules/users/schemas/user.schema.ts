@@ -17,7 +17,7 @@ export class User extends BaseSchema {
   password: string;
 
   // Platform-level role only — org-level role lives in Membership
-  @Prop({ enum: Role, default: Role.USER })
+  @Prop({ type: String, enum: Role, default: Role.USER })
   role: Role;
 
   @Prop({ default: false })

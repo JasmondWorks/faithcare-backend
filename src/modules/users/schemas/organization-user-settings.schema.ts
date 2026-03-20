@@ -22,16 +22,16 @@ export class OrganizationUserSettings extends BaseSchema {
   @Prop({ type: Object, default: { newFirstTimers: true, newPrayerRequests: true, pendingFollowUpReminders: true } })
   notifications: NotificationSettings;
 
-  @Prop({ enum: ['LIGHT', 'DARK'], default: 'LIGHT' })
+  @Prop({ type: String, enum: ['LIGHT', 'DARK'], default: 'LIGHT' })
   theme: 'LIGHT' | 'DARK';
 
   @Prop({ default: false })
   is2FAEnabled: boolean;
 
-  @Prop({ enum: ['EN', 'FR'], default: 'EN' })
+  @Prop({ type: String, enum: ['EN', 'FR'], default: 'EN' })
   language: 'EN' | 'FR';
 
-  @Prop({ enum: ['WAT', 'ET'], default: 'WAT' })
+  @Prop({ type: String, enum: ['WAT', 'ET'], default: 'WAT' })
   timeZone: 'WAT' | 'ET';
 }
 

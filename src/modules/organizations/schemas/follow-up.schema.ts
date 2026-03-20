@@ -18,7 +18,7 @@ export class FollowUp extends BaseSchema {
   @Prop({ type: [String], enum: ['FIRST_TIMER'], default: ['FIRST_TIMER'] })
   tags: string[];
 
-  @Prop({ enum: ['HIGH'], default: 'HIGH' })
+  @Prop({ type: String, enum: ['HIGH'], default: 'HIGH' })
   priority: string;
 
   @Prop({ required: true })

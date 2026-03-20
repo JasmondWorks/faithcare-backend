@@ -22,7 +22,7 @@ export class Organization extends BaseSchema {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   createdBy: Types.ObjectId;
 
-  @Prop({ enum: Denomination, required: true })
+  @Prop({ type: String, enum: Denomination, required: true })
   denomination: Denomination;
 
   @Prop({ required: true })
@@ -43,7 +43,7 @@ export class Organization extends BaseSchema {
   @Prop({ default: null })
   websiteUrl?: string;
 
-  @Prop({ enum: MemberCountRange, required: true })
+  @Prop({ type: String, enum: MemberCountRange, required: true })
   memberCountRange: MemberCountRange;
 }
 
