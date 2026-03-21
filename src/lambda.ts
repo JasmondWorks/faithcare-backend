@@ -24,6 +24,7 @@ async function bootstrap(): Promise<void> {
     logger: ['error', 'warn'],
   });
 
+  app.enableCors({ origin: '*' });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new GlobalErrorFilter());
   app.setGlobalPrefix('api/v1', { exclude: ['/'] });
