@@ -1,5 +1,5 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Public } from 'src/core/decorators/public.decorator';
 import { WorkforceApplicationService } from '../services/workforce-application.service';
 import { TrybeApplicationService } from '../services/trybe-application.service';
@@ -20,6 +20,8 @@ export class PrimeController {
 
   @Post('workforce')
   @HttpCode(HttpStatus.CREATED)
+  @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
+  @ApiBody({ type: CreateWorkforceApplicationDto })
   @ApiOperation({ summary: 'Submit a workforce volunteer application' })
   joinWorkforce(@Body() dto: CreateWorkforceApplicationDto) {
     return this.workforceApplicationService.apply(dto);
@@ -27,6 +29,8 @@ export class PrimeController {
 
   @Post('trybe')
   @HttpCode(HttpStatus.CREATED)
+  @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
+  @ApiBody({ type: CreateTrybeApplicationDto })
   @ApiOperation({ summary: 'Submit a Trybe membership application' })
   joinTrybe(@Body() dto: CreateTrybeApplicationDto) {
     return this.trybeApplicationService.apply(dto);
@@ -34,6 +38,8 @@ export class PrimeController {
 
   @Post('prayer-request')
   @HttpCode(HttpStatus.CREATED)
+  @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
+  @ApiBody({ type: CreatePrimePrayerRequestDto })
   @ApiOperation({ summary: 'Submit a prayer request' })
   submitPrayerRequest(@Body() dto: CreatePrimePrayerRequestDto) {
     return this.primePrayerRequestService.submit(dto);
