@@ -27,6 +27,7 @@ async function bootstrap() {
     .addTag('Journal', 'Full CRUD for sermon and devotional journal entries')
     .addTag('Scripture', 'One scripture per day with encouragement and reminder preferences')
     .addTag('Focus Timer', '25-minute Pomodoro-style sessions with scripture reward on completion')
+    .addTag('Prime Church', 'Workforce applications, Trybe membership, and prayer requests for Prime Church')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'access-token',

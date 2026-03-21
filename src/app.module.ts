@@ -16,6 +16,7 @@ import { JournalModule } from './modules/journal/journal.module';
 import { DailyScriptureModule } from './modules/daily-scripture/daily-scripture.module';
 import { FocusTimerModule } from './modules/focus-timer/focus-timer.module';
 import { HealthModule } from './health/health.module';
+import { PrimeModule } from './modules/prime/prime.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { HealthModule } from './health/health.module';
     DailyScriptureModule,
     FocusTimerModule,
     HealthModule,
+    PrimeModule,
   ],
   controllers: [AppController],
   providers: [
