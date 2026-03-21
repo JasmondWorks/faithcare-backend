@@ -10,7 +10,7 @@ export type TrybeApplicationDocument = TrybeApplication & Document;
 
 const PRIME_ORG_ID = new Types.ObjectId('69bd8cd5ec1a44c866c52113');
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'prime_trybe_applications' })
 export class TrybeApplication extends BaseSchema {
   @Prop({ type: Types.ObjectId, ref: 'Organization', default: () => PRIME_ORG_ID })
   organizationId: Types.ObjectId;
