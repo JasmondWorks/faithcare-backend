@@ -32,7 +32,12 @@ export class CreateWorkforceApplicationDto {
 
   @ApiProperty({
     enum: Department,
+    enumName: 'Department',
     isArray: true,
+    description:
+      'One or more departments the applicant would like to serve in. ' +
+      'Allowed values: ' +
+      Object.values(Department).join(' | '),
     example: [Department.SOUND_TRYBE, Department.MEDIA_TECHNICAL],
   })
   @IsArray()

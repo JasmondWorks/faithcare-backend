@@ -18,11 +18,21 @@ export class CreateTrybeApplicationDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ enum: Gender })
+  @ApiProperty({
+    enum: Gender,
+    enumName: 'Gender',
+    description: 'Allowed values: ' + Object.values(Gender).join(' | '),
+    example: Gender.FEMALE,
+  })
   @IsEnum(Gender)
   gender: Gender;
 
-  @ApiProperty({ enum: TrybeMembershipStatus })
+  @ApiProperty({
+    enum: TrybeMembershipStatus,
+    enumName: 'TrybeMembershipStatus',
+    description: 'Whether the applicant is already a church member. Allowed values: ' + Object.values(TrybeMembershipStatus).join(' | '),
+    example: TrybeMembershipStatus.YES,
+  })
   @IsEnum(TrybeMembershipStatus)
   isAMember: TrybeMembershipStatus;
 
@@ -30,7 +40,12 @@ export class CreateTrybeApplicationDto {
   @IsString()
   skills: string;
 
-  @ApiProperty({ enum: TrybeIntent })
+  @ApiProperty({
+    enum: TrybeIntent,
+    enumName: 'TrybeIntent',
+    description: 'What the applicant would like to do in Trybe. Allowed values: ' + Object.values(TrybeIntent).join(' | '),
+    example: TrybeIntent.JOIN,
+  })
   @IsEnum(TrybeIntent)
   whatWouldYouLikeToDo: TrybeIntent;
 
@@ -38,7 +53,12 @@ export class CreateTrybeApplicationDto {
   @IsString()
   whyWouldYouLikeToJoin: string;
 
-  @ApiProperty({ enum: TrybeCategory })
+  @ApiProperty({
+    enum: TrybeCategory,
+    enumName: 'TrybeCategory',
+    description: 'The Trybe category the applicant wants to join. Allowed values: ' + Object.values(TrybeCategory).join(' | '),
+    example: TrybeCategory.CREATIVE,
+  })
   @IsEnum(TrybeCategory)
   whichTrybeCategoryToJoin: TrybeCategory;
 }
