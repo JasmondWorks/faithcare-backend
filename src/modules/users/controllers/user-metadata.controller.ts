@@ -48,8 +48,8 @@ export class UserMetaDataController {
     summary: 'Connect to a church',
     description:
       'Updates the authenticated user\'s church affiliation. ' +
-      'Provide `organizationId` if the church exists in the system (found via search), ' +
-      'or `name` if it does not. Only one field should be sent.',
+      'Provide `organization` (a MongoDB ObjectId) if the church was found via search, ' +
+      'or `churchName` (a free-text string) if it was not. Only one field should be sent.',
   })
   connectToChurch(
     @CurrentUser() user: any,

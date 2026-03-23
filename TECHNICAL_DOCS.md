@@ -151,7 +151,7 @@ Platform
 
 ```
 Step 1: Login
-  POST /auth/user/login
+  POST /auth/login
   → Returns global access token  (no activeOrganizationId)
 
 Step 2: Switch into an org context
@@ -346,7 +346,8 @@ Holds profile preferences linked 1:1 to a User.
 |-------|------|-------|
 | `userId` | ObjectId → User | unique |
 | `location` | string? | |
-| `organizationId` | ObjectId → Organization? | User's selected/primary church |
+| `organization` | ObjectId → Organization \| null | Populated on read; set when church found in system via search |
+| `churchName` | string \| null | Free-text church name; set when church is not in the system |
 | `spiritualGoals` | `SpiritualGoals` | sub-document of booleans |
 | `currentFocusTimerId` | ObjectId → FocusTimer? | |
 | `dailyBibleReadingStreakCount` | number | default: 0 |
@@ -377,6 +378,17 @@ Per-user, per-org preference overrides.
 | GET | `/users/:id` | JWT | Find by ID |
 | PATCH | `/users/:id` | JWT | Update user |
 | DELETE | `/users/:id` | JWT | Delete user |
+
+**User Metadata routes:**
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/users/metadata` | JWT | Create metadata record |
+| GET | `/users/metadata/user/:userId` | JWT | Get metadata by user ID (populated church) |
+| GET | `/users/metadata/:id` | JWT | Get metadata by record ID |
+| PATCH | `/users/metadata/:id` | JWT | Update metadata fields |
+| DELETE | `/users/metadata/:id` | JWT | Delete metadata record |
+| PATCH | `/users/metadata/me/church` | JWT | Connect/update church affiliation — provide `organization` (ObjectId) **or** `churchName` (string) |
 
 ---
 
@@ -428,6 +440,7 @@ This module is the **core of the multi-tenant system**. It owns the `Organizatio
 | `phoneNumber` | string | |
 | `websiteUrl` | string? | |
 | `memberCountRange` | `MemberCountRange` enum | |
+| `firstTimerQrCode` | string \| null | Base64 PNG data URI; encodes `{ organizationId, slug, name }` so the public first-timer form can auto-identify the org on QR scan |
 
 Slug generation: `"Prime Church Lagos"` → `"prime-church-lagos"` (lowercased, spaces/specials replaced with hyphens).
 
@@ -438,15 +451,15 @@ The **join table** between users and organizations. Central to the entire multi-
 | Field | Type | Notes |
 |-------|------|-------|
 | `userId` | ObjectId → User | required |
-| `organizationId` | ObjectId → Organization | required |
+| `organization` | ObjectId → Organization | required |
 | `role` | `MembershipRole` enum | `OWNER` / `ADMIN` / `MEMBER` |
 | `status` | `MembershipStatus` enum | `ACTIVE` / `INVITED` / `SUSPENDED` |
 | `organizationRole` | `OrganizationRole` enum \| null | Church title (e.g. `SENIOR_PASTOR`) |
 | `invitedBy` | ObjectId → User \| null | Set when invited by another member |
 
 **Indexes:**
-- `{ userId, organizationId }` — **unique** (one membership per user per org)
-- `{ organizationId, status }` — fast org member listing
+- `{ userId, organization }` — **unique** (one membership per user per org)
+- `{ organization, status }` — fast org member listing
 - `{ userId, status }` — fast user org listing
 
 #### `PrayerRequest` Schema (org-level)

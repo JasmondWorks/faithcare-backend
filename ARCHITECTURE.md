@@ -208,7 +208,7 @@ User ────────────────────── Membersh
            MEMBER          SUSPENDED         WORSHIP_LEADER/...
 ```
 
-A single user can have **multiple Membership records** — one per organization they belong to. The compound unique index `{ userId, organizationId }` enforces one membership per user per org.
+A single user can have **multiple Membership records** — one per organization they belong to. The compound unique index `{ userId, organization }` enforces one membership per user per org.
 
 ### Two-Token Flow
 
@@ -381,8 +381,8 @@ this.repository.findAll({ organizationId, isDeleted: false })
 |-----------|-------|------|---------|
 | `users` | `{ email: 1 }` | unique | Login lookup |
 | `organizations` | `{ slug: 1 }` | unique | Tenant resolution by slug |
-| `memberships` | `{ userId: 1, organizationId: 1 }` | unique | One membership per user per org |
-| `memberships` | `{ organizationId: 1, status: 1 }` | compound | List org's active members |
+| `memberships` | `{ userId: 1, organization: 1 }` | unique | One membership per user per org |
+| `memberships` | `{ organization: 1, status: 1 }` | compound | List org's active members |
 | `memberships` | `{ userId: 1, status: 1 }` | compound | List user's orgs |
 | `otps` | `{ expiresAt: 1 }` | TTL | Auto-expire OTP documents |
 | `otps` | `{ email: 1 }` | — | Fast OTP lookup by email |
@@ -456,7 +456,7 @@ MembershipController.getMembers(:organizationId)
 MembershipService.getOrganizationMembers(organizationId)
   ▼
 MembershipRepository.findByOrganization(organizationId)
-  │  filter: { organizationId, status: ACTIVE, isDeleted: false }
+  │  filter: { organization: organizationId, status: ACTIVE, isDeleted: false }
   │  populate: userId (name, email, role, createdAt)
   ▼
 MongoDB → response
