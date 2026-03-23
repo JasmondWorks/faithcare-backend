@@ -14,6 +14,16 @@ export class SpiritualGoals {
   deeperFaith: boolean;
 }
 
+/**
+ * Exactly one of `name` or `organizationId` will be non-null:
+ *   name           → user typed a church name not found in the system
+ *   organizationId → user selected an existing Organization record
+ */
+export class ChurchInfo {
+  name: string | null;
+  organizationId: Types.ObjectId | null;
+}
+
 @Schema({ timestamps: true })
 export class UserMetaData extends BaseSchema {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true })
@@ -22,8 +32,15 @@ export class UserMetaData extends BaseSchema {
   @Prop({ default: null })
   location?: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Organization', default: null })
-  organizationId?: Types.ObjectId | null;
+  @Prop({
+    type: {
+      name: { type: String, default: null },
+      organizationId: { type: Types.ObjectId, ref: 'Organization', default: null },
+    },
+    default: () => ({ name: null, organizationId: null }),
+    _id: false,
+  })
+  church: ChurchInfo;
 
   @Prop({ type: [Object], default: null })
   spiritualGoals?: SpiritualGoals[] | null;
