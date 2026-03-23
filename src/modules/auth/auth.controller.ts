@@ -12,7 +12,6 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
 import { AuthService } from './auth.service';
-import { AdminLoginDto } from './dto/admin-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -25,34 +24,27 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @Post('admin/login')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Authenticate as a church admin — returns an 8-hour JWT' })
-  @ApiResponse({ status: 200, description: 'Authentication successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  @ApiResponse({ status: 429, description: 'Rate limit exceeded' })
-  adminLogin(@Body() adminLoginDto: AdminLoginDto) {
-    return this.authService.adminLogin(adminLoginDto);
-  }
-
-  @Public()
-  @Post('user/register')
-  @ApiOperation({ summary: 'Register a new user with email and password' })
-  @ApiResponse({ status: 201, description: 'Account created, JWT returned' })
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new user account' })
+  @ApiResponse({ status: 201, description: 'Account created — verify your email to log in' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
-  @ApiResponse({ status: 422, description: 'Validation error' })
   userRegister(@Body() userRegisterDto: UserRegisterDto) {
     return this.authService.userRegister(userRegisterDto);
   }
 
   @Public()
-  @Post('user/login')
+  @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Log in with email and password — returns a 30-day user JWT' })
-  @ApiResponse({ status: 200, description: 'OK' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  userLogin(@Body() userLoginDto: UserLoginDto) {
-    return this.authService.userLogin(userLoginDto);
+  @ApiOperation({
+    summary: 'Log in with email and password',
+    description:
+      'Works for all users. The `role` field in the response determines the authorization ' +
+      'level on the client (USER · ADMIN · ORGANIZATION_ADMIN · SUPER_ADMIN).',
+  })
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })
+  login(@Body() loginDto: UserLoginDto) {
+    return this.authService.login(loginDto);
   }
 
   @Public()

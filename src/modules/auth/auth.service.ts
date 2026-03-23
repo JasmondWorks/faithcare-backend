@@ -14,7 +14,6 @@ import { User, UserDocument } from '../users/schemas/user.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
 import { EmailService } from './services/email.service';
 import { MembershipService } from '../organizations/services/membership.service';
-import { AdminLoginDto } from './dto/admin-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -94,31 +93,6 @@ export class AuthService {
 
   // ── Auth flows ─────────────────────────────────────────────────
 
-  async adminLogin(dto: AdminLoginDto) {
-    const user = await this.userModel.findOne({
-      email: dto.email,
-      isDeleted: false,
-      role: { $in: [Role.ADMIN, Role.ORGANIZATION_ADMIN, Role.SUPER_ADMIN] },
-    });
-
-    if (!user) throw new UnauthorizedException('Invalid credentials');
-
-    const isMatch = await bcrypt.compare(dto.password, user.password);
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
-
-    const { accessToken, refreshToken } = this.signTokens(user);
-    return {
-      success: true,
-      data: {
-        accessToken,
-        refreshToken,
-        tokenType: 'Bearer',
-        expiresIn: 28800,
-        admin: this.userView(user),
-      },
-    };
-  }
-
   async userRegister(dto: UserRegisterDto) {
     const existing = await this.userModel.findOne({ email: dto.email });
     if (existing) throw new ConflictException('Email already registered');
@@ -141,9 +115,15 @@ export class AuthService {
     };
   }
 
-  async userLogin(dto: UserLoginDto) {
+  /**
+   * Unified login for all users.
+   * The `role` in the response determines authorization level on the client:
+   *   USER → regular app user
+   *   ADMIN / ORGANIZATION_ADMIN / SUPER_ADMIN → elevated access
+   */
+  async login(dto: UserLoginDto) {
     const user = await this.userModel.findOne({ email: dto.email, isDeleted: false });
-    if (!user) throw new UnauthorizedException('User with this email was not found');
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
@@ -162,7 +142,7 @@ export class AuthService {
         accessToken,
         refreshToken,
         tokenType: 'Bearer',
-        expiresIn: 2592000,
+        expiresIn: 28800,
         user: this.userView(user),
       },
     };
