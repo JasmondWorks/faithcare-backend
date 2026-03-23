@@ -17,6 +17,10 @@ export class CommunityRepository extends BaseRepository<CommunityDocument> {
     return this.model.find({ organizationId, isDeleted: false }).exec();
   }
 
+  async findByUserInOrg(userId: string, organizationId: string) {
+    return this.model.find({ organizationId, members: userId, isDeleted: false }).exec();
+  }
+
   async findRecentMembers(id: string) {
     const community = await this.model.findById(id).exec();
     if (!community) return null;

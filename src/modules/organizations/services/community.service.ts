@@ -13,6 +13,10 @@ export class CommunityService extends BaseService<CommunityDocument> {
     return this.communityRepository.findByOrganization(organizationId);
   }
 
+  async findByUserInOrg(userId: string, organizationId: string) {
+    return this.communityRepository.findByUserInOrg(userId, organizationId);
+  }
+
   async findWithRecentMembers(id: string) {
     return this.communityRepository.findRecentMembers(id);
   }

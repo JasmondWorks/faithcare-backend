@@ -14,6 +14,8 @@ import { MembershipService } from '../services/membership.service';
 import { InviteMemberDto } from '../dto/invite-member.dto';
 import { UpdateMemberRoleDto } from '../dto/update-member-role.dto';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { Role } from 'src/core/enums/role.enum';
 
 @ApiTags('Organization — Members')
 @ApiBearerAuth('access-token')
@@ -21,14 +23,19 @@ import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 export class MembershipController {
   constructor(private readonly membershipService: MembershipService) {}
 
+  // ── All authenticated users ─────────────────────────────────────
+
   @Get()
   @ApiOperation({ summary: 'List all active members of an organization' })
   getMembers(@Param('organizationId') organizationId: string) {
     return this.membershipService.getOrganizationMembers(organizationId);
   }
 
+  // ── ADMIN / SUPER_ADMIN only ────────────────────────────────────
+
   @Post('invite')
-  @ApiOperation({ summary: 'Invite an existing user to the organization by email' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Invite an existing user to the organization by email (ADMIN/SUPER_ADMIN only)' })
   invite(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: any,
@@ -38,7 +45,8 @@ export class MembershipController {
   }
 
   @Patch(':userId/role')
-  @ApiOperation({ summary: 'Update a member role (ADMIN+ only; only OWNER can assign OWNER)' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Update a member role (ADMIN/SUPER_ADMIN only; only OWNER can assign OWNER)' })
   updateRole(
     @Param('organizationId') organizationId: string,
     @Param('userId') targetUserId: string,
@@ -50,7 +58,8 @@ export class MembershipController {
 
   @Delete(':userId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Remove a member from the organization (ADMIN+ only)' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Remove a member from the organization (ADMIN/SUPER_ADMIN only)' })
   removeMember(
     @Param('organizationId') organizationId: string,
     @Param('userId') targetUserId: string,
@@ -61,7 +70,8 @@ export class MembershipController {
 
   @Delete('leave')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Leave the organization (OWNER must transfer ownership first)' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Leave the organization (ADMIN/SUPER_ADMIN only; OWNER must transfer ownership first)' })
   leave(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: any,

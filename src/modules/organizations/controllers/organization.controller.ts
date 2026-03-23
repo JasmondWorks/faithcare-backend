@@ -15,6 +15,8 @@ import { MembershipService } from '../services/membership.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { UpdateOrganizationDto } from '../dto/update-organization.dto';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { Role } from 'src/core/enums/role.enum';
 
 @ApiTags('Organization')
 @ApiBearerAuth('access-token')
@@ -25,8 +27,11 @@ export class OrganizationController {
     private readonly membershipService: MembershipService,
   ) {}
 
+  // ── ADMIN / SUPER_ADMIN only ────────────────────────────────────
+
   @Post()
-  @ApiOperation({ summary: 'Create a new organization — caller becomes the OWNER' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)' })
   create(
     @Body() dto: CreateOrganizationDto,
     @CurrentUser() user: any,
@@ -34,26 +39,16 @@ export class OrganizationController {
     return this.organizationService.createWithOwner(dto, user.id);
   }
 
-  @Get('mine')
-  @ApiOperation({ summary: 'List all organizations the authenticated user belongs to' })
-  mine(@CurrentUser() user: any) {
-    return this.membershipService.getUserOrganizations(user.id);
-  }
-
   @Get('slug/:slug')
-  @ApiOperation({ summary: 'Find an organization by its URL slug' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Find an organization by its URL slug (ADMIN/SUPER_ADMIN only)' })
   findBySlug(@Param('slug') slug: string) {
     return this.organizationService.findBySlug(slug);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get organization details by ID' })
-  findOne(@Param('id') id: string) {
-    return this.organizationService.findById(id);
-  }
-
   @Patch(':id')
-  @ApiOperation({ summary: 'Update organization details (ADMIN+ only)' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Update organization details (ADMIN/SUPER_ADMIN only)' })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateOrganizationDto,
@@ -62,15 +57,31 @@ export class OrganizationController {
   }
 
   @Post(':id/qr-code/regenerate')
-  @ApiOperation({ summary: 'Regenerate the first-timer QR code for an organization' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Regenerate the first-timer QR code for an organization (ADMIN/SUPER_ADMIN only)' })
   regenerateQrCode(@Param('id') id: string) {
     return this.organizationService.regenerateQrCode(id);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Soft-delete an organization (OWNER only)' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Soft-delete an organization (ADMIN/SUPER_ADMIN only)' })
   delete(@Param('id') id: string) {
     return this.organizationService.softDelete(id);
+  }
+
+  // ── All authenticated users ─────────────────────────────────────
+
+  @Get('mine')
+  @ApiOperation({ summary: 'List all organizations the authenticated user belongs to' })
+  mine(@CurrentUser() user: any) {
+    return this.membershipService.getUserOrganizations(user.id);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get organization details by ID' })
+  findOne(@Param('id') id: string) {
+    return this.organizationService.findById(id);
   }
 }
