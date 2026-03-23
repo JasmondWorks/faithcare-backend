@@ -61,6 +61,12 @@ export class OrganizationController {
     return this.organizationService.update(id, dto);
   }
 
+  @Post(':id/qr-code/regenerate')
+  @ApiOperation({ summary: 'Regenerate the first-timer QR code for an organization' })
+  regenerateQrCode(@Param('id') id: string) {
+    return this.organizationService.regenerateQrCode(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete an organization (OWNER only)' })

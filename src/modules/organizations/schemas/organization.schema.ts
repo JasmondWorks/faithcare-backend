@@ -45,6 +45,11 @@ export class Organization extends BaseSchema {
 
   @Prop({ type: String, enum: MemberCountRange, required: true })
   memberCountRange: MemberCountRange;
+
+  // Base64 PNG data URI of the QR code for the first-timer registration page.
+  // Encodes { organizationId, slug, name } so the public form can fetch org details.
+  @Prop({ default: null })
+  firstTimerQrCode?: string;
 }
 
 export const OrganizationSchema = SchemaFactory.createForClass(Organization);
