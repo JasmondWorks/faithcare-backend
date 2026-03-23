@@ -16,7 +16,7 @@ export class UserMetaDataRepository extends BaseRepository<UserMetaDataDocument>
   async findByUserId(userId: string) {
     return this.model
       .findOne({ userId, isDeleted: false })
-      .populate('church.organizationId', 'name slug email city state denomination phoneNumber')
+      .populate('organization')
       .exec();
   }
 }

@@ -15,27 +15,27 @@ export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
 
   /**
    * Connect (or update) a user's church affiliation.
-   * Exactly one of organizationId or name must be provided.
+   * Provide `organization` (ObjectId) for an existing org, or `churchName` for a custom entry.
    */
   async connectToChurch(
     userId: string,
-    dto: { organizationId?: string | null; name?: string | null },
+    dto: { organization?: string | null; churchName?: string | null },
   ) {
-    if (!dto.organizationId && !dto.name) {
-      throw new BadRequestException('Provide either organizationId or name');
+    if (!dto.organization && !dto.churchName) {
+      throw new BadRequestException('Provide either organization or churchName');
     }
-    if (dto.organizationId && dto.name) {
-      throw new BadRequestException('Provide only one of organizationId or name, not both');
+    if (dto.organization && dto.churchName) {
+      throw new BadRequestException('Provide only one of organization or churchName, not both');
     }
 
     const metadata = await this.userMetaDataRepository.findByUserId(userId);
     if (!metadata) throw new NotFoundException('User metadata not found');
 
-    const church = dto.organizationId
-      ? { organizationId: dto.organizationId, name: null }
-      : { organizationId: null, name: dto.name as string };
+    const update = dto.organization
+      ? { organization: dto.organization, churchName: null }
+      : { organization: null, churchName: dto.churchName };
 
-    await this.userMetaDataRepository.update((metadata._id as any).toString(), { church });
+    await this.userMetaDataRepository.update((metadata._id as any).toString(), update);
     return this.userMetaDataRepository.findByUserId(userId);
   }
 }

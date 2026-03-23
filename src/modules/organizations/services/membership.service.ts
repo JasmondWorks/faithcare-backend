@@ -35,7 +35,7 @@ export class MembershipService {
   async createOwnership(userId: string, organizationId: string, organizationRole: OrganizationRole) {
     return this.membershipRepo.create({
       userId,
-      organizationId,
+      organization: organizationId,
       role: MembershipRole.OWNER,
       status: MembershipStatus.ACTIVE,
       organizationRole,
@@ -70,7 +70,7 @@ export class MembershipService {
 
     return this.membershipRepo.create({
       userId: targetId,
-      organizationId,
+      organization: organizationId,
       role: dto.role ?? MembershipRole.MEMBER,
       status: MembershipStatus.ACTIVE,
       invitedBy: invitedByUserId,

@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsMongoId, IsNumber, IsOptional, IsString, ValidateNested, ValidateIf } from 'class-validator';
+import { IsArray, IsBoolean, IsMongoId, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -32,26 +32,6 @@ export class SpiritualGoalsDto {
   deeperFaith: boolean;
 }
 
-export class ChurchDto {
-  @ApiPropertyOptional({
-    example: 'Grace Chapel',
-    description: 'Church name — provide this when the church is NOT found in the system',
-  })
-  @ValidateIf((o) => !o.organizationId)
-  @IsOptional()
-  @IsString()
-  name?: string | null;
-
-  @ApiPropertyOptional({
-    example: '64a1f2c3e4b5d6e7f8a9b0c1',
-    description: 'Organization ID — provide this when the user selects an existing church from search results',
-  })
-  @ValidateIf((o) => !o.name)
-  @IsOptional()
-  @IsMongoId()
-  organizationId?: string | null;
-}
-
 export class CreateUserMetaDataDto {
   @ApiProperty({ example: '64a1f2c3e4b5d6e7f8a9b0c1' })
   @IsMongoId()
@@ -63,15 +43,20 @@ export class CreateUserMetaDataDto {
   location?: string;
 
   @ApiPropertyOptional({
-    type: () => ChurchDto,
-    description:
-      'Church affiliation. Set `organizationId` if the church exists in the system, ' +
-      'or `name` if it does not. Only one should be non-null.',
+    example: '64a1f2c3e4b5d6e7f8a9b0c1',
+    description: 'ID of an existing organization. Provide this when the user selects a church from search results.',
   })
   @IsOptional()
-  @ValidateNested()
-  @Type(() => ChurchDto)
-  church?: ChurchDto;
+  @IsMongoId()
+  organization?: string;
+
+  @ApiPropertyOptional({
+    example: 'Grace Chapel Abuja',
+    description: 'Free-text church name. Provide this when the church is not found in the system.',
+  })
+  @IsOptional()
+  @IsString()
+  churchName?: string;
 
   @ApiPropertyOptional({ type: () => SpiritualGoalsDto, isArray: true })
   @IsOptional()
