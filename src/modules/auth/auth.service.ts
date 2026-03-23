@@ -118,8 +118,9 @@ export class AuthService {
   /**
    * Unified login for all users.
    * The `role` in the response determines authorization level on the client:
-   *   USER → regular app user
-   *   ADMIN / ORGANIZATION_ADMIN / SUPER_ADMIN → elevated access
+   *   USER       → regular app user
+   *   ADMIN      → organization admin (set automatically on org creation)
+   *   SUPER_ADMIN → full platform access
    */
   async login(dto: UserLoginDto) {
     const user = await this.userModel.findOne({ email: dto.email, isDeleted: false });

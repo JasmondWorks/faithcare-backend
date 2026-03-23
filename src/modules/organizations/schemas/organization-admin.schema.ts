@@ -13,7 +13,7 @@ export class OrganizationAdmin extends BaseSchema {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ enum: Role, default: Role.ORGANIZATION_ADMIN })
+  @Prop({ type: String, enum: Role, default: Role.ADMIN })
   role: Role;
 }
 

@@ -21,7 +21,7 @@ async function bootstrap() {
       'young professionals spiritually grounded.',
     )
     .setVersion('1.0')
-    .addTag('Authentication', 'Admin and user login, Google OAuth 2.0, token refresh')
+    .addTag('Authentication', 'Login (role determines access level), registration, email OTP verification, token refresh, org context switch')
     .addTag('ChurchCare — First Timers', 'QR code registration, visitor records, follow-up status')
     .addTag('ChurchCare — Follow-Up', 'Message templates, delivery logs, manual messaging triggers')
     .addTag('ChurchCare — Dashboard', 'Aggregate metrics and weekly trend data')

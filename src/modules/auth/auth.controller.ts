@@ -39,7 +39,8 @@ export class AuthController {
     summary: 'Log in with email and password',
     description:
       'Works for all users. The `role` field in the response determines the authorization ' +
-      'level on the client (USER · ADMIN · ORGANIZATION_ADMIN · SUPER_ADMIN).',
+      'level on the client (USER · ADMIN · SUPER_ADMIN). ' +
+      'ADMIN is set automatically when a user creates an organization.',
   })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })

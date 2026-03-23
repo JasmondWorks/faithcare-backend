@@ -1,16 +1,21 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import * as QRCode from 'qrcode';
 import { BaseService } from 'src/core/services/base.service';
 import { OrganizationDocument } from '../schemas/organization.schema';
 import { OrganizationRepository } from '../repositories/organization.repository';
 import { MembershipService } from './membership.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
+import { User, UserDocument } from '../../users/schemas/user.schema';
+import { Role } from 'src/core/enums/role.enum';
 
 @Injectable()
 export class OrganizationService extends BaseService<OrganizationDocument> {
   constructor(
     private organizationRepository: OrganizationRepository,
     private membershipService: MembershipService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {
     super(organizationRepository);
   }
@@ -52,6 +57,9 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     org.firstTimerQrCode = firstTimerQrCode;
 
     await this.membershipService.createOwnership(createdByUserId, orgId, dto.organizationRole);
+
+    // Promote the creator to ADMIN on their User record
+    await this.userModel.findByIdAndUpdate(createdByUserId, { role: Role.ADMIN });
 
     return org;
   }
