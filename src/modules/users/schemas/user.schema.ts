@@ -16,8 +16,12 @@ export class User extends BaseSchema {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ enum: Role, default: Role.USER })
+  // Platform-level role only — org-level role lives in Membership
+  @Prop({ type: String, enum: Role, default: Role.USER })
   role: Role;
+
+  @Prop({ default: false })
+  isEmailVerified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,7 +1,7 @@
-export abstract class BaseService<T> {
+export abstract class BaseService<_T> {
   constructor(protected repository: any) {}
 
-  create(data: Partial<T>) {
+  create(data: any) {
     return this.repository.create(data);
   }
 
@@ -17,11 +17,15 @@ export abstract class BaseService<T> {
     return this.repository.findById(id);
   }
 
-  update(id: string, data) {
+  update(id: string, data: any) {
     return this.repository.update(id, data);
   }
 
   delete(id: string) {
     return this.repository.delete(id);
+  }
+
+  softDelete(id: string) {
+    return this.repository.softDelete(id);
   }
 }

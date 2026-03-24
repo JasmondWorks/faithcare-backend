@@ -1,21 +1,55 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from './modules/auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
+import envConfig from './config/env.config';
 import { RolesGuard } from './core/guards/roles.guard';
+import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
+import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { FirstTimersModule } from './modules/first-timers/first-timers.module';
+import { ChurchModule } from './modules/church/church.module';
+import { JournalModule } from './modules/journal/journal.module';
+import { DailyScriptureModule } from './modules/daily-scripture/daily-scripture.module';
+import { FocusTimerModule } from './modules/focus-timer/focus-timer.module';
+import { HealthModule } from './health/health.module';
+import { PrimeModule } from './modules/prime/prime.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [envConfig],
+    }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get<string>('mongodb.uri'),
+        serverSelectionTimeoutMS: 3000,
+        connectTimeoutMS: 3000,
+      }),
+    }),
     UsersModule,
-    MongooseModule.forRoot('mongodb://localhost:27017/faithcare'),
     AuthModule,
+    OrganizationsModule,
+    FirstTimersModule,
+    ChurchModule,
+    JournalModule,
+    DailyScriptureModule,
+    FocusTimerModule,
+    HealthModule,
+    PrimeModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
