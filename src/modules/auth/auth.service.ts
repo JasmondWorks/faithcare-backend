@@ -93,7 +93,7 @@ export class AuthService {
 
   // ── Auth flows ─────────────────────────────────────────────────
 
-  async userRegister(dto: UserRegisterDto) {
+  private async register(dto: UserRegisterDto, role: Role) {
     const existing = await this.userModel.findOne({ email: dto.email });
     if (existing) throw new ConflictException('Email already registered');
 
@@ -103,7 +103,7 @@ export class AuthService {
       name: dto.fullName,
       email: dto.email,
       password: hashedPassword,
-      role: Role.USER,
+      role,
       isEmailVerified: false,
     });
 
@@ -115,12 +115,20 @@ export class AuthService {
     };
   }
 
+  async userRegister(dto: UserRegisterDto) {
+    return this.register(dto, Role.USER);
+  }
+
+  async adminRegister(dto: UserRegisterDto) {
+    return this.register(dto, Role.ADMIN);
+  }
+
   /**
    * Unified login for all users.
    * The `role` in the response determines authorization level on the client:
-   *   USER       → regular app user
-   *   ADMIN      → organization admin (set automatically on org creation)
-   *   SUPER_ADMIN → full platform access
+   *   USER        → regular app user (registered via /auth/register/user)
+   *   ADMIN       → organization admin (registered via /auth/register/admin)
+   *   SUPER_ADMIN → full platform access (manually assigned)
    */
   async login(dto: UserLoginDto) {
     const user = await this.userModel.findOne({ email: dto.email, isDeleted: false });

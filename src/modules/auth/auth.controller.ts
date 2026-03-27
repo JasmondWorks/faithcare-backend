@@ -24,12 +24,21 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @Post('register')
-  @ApiOperation({ summary: 'Register a new user account' })
+  @Post('register/user')
+  @ApiOperation({ summary: 'Register a new user account (role: USER)' })
   @ApiResponse({ status: 201, description: 'Account created — verify your email to log in' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
   userRegister(@Body() userRegisterDto: UserRegisterDto) {
     return this.authService.userRegister(userRegisterDto);
+  }
+
+  @Public()
+  @Post('register/admin')
+  @ApiOperation({ summary: 'Register a new admin account (role: ADMIN)' })
+  @ApiResponse({ status: 201, description: 'Account created — verify your email to log in' })
+  @ApiResponse({ status: 409, description: 'Email already registered' })
+  adminRegister(@Body() userRegisterDto: UserRegisterDto) {
+    return this.authService.adminRegister(userRegisterDto);
   }
 
   @Public()
@@ -39,8 +48,7 @@ export class AuthController {
     summary: 'Log in with email and password',
     description:
       'Works for all users. The `role` field in the response determines the authorization ' +
-      'level on the client (USER · ADMIN · SUPER_ADMIN). ' +
-      'ADMIN is set automatically when a user creates an organization.',
+      'level on the client (USER · ADMIN · SUPER_ADMIN).',
   })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })
