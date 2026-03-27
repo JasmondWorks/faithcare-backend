@@ -174,10 +174,16 @@ All org-owned data documents store an `organizationId` field. Queries always fil
 ### Registration & Email Verification
 
 ```
-POST /auth/register
+POST /auth/register/user   (Public)
   ├── Check email uniqueness
   ├── Hash password (bcrypt, salt: 12)
   ├── Create User (isEmailVerified: false, role: USER)
+  └── Send 6-digit OTP to email (expires 10 min)
+
+POST /auth/register/admin  (Public)
+  ├── Check email uniqueness
+  ├── Hash password (bcrypt, salt: 12)
+  ├── Create User (isEmailVerified: false, role: ADMIN)
   └── Send 6-digit OTP to email (expires 10 min)
 
 POST /auth/verify-email  { email, otp }
@@ -198,9 +204,9 @@ POST /auth/login  { email, password }
   └── Return { accessToken (8h), refreshToken (90d), user: { role } }
        ↑
        role is read by the client to determine access level:
-         USER       → regular member
-         ADMIN      → organization admin (auto-set on org creation)
-         SUPER_ADMIN → full platform access
+         USER        → regular member (registered via /auth/register/user)
+         ADMIN       → org admin (registered via /auth/register/admin)
+         SUPER_ADMIN → full platform access (manually assigned)
 ```
 
 ### Token Refresh
@@ -400,7 +406,8 @@ Per-user, per-org preference overrides.
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/auth/register` | Public | Register |
+| POST | `/auth/register/user` | Public | Register — assigns role: USER |
+| POST | `/auth/register/admin` | Public | Register — assigns role: ADMIN |
 | POST | `/auth/login` | Public | Login — `role` in response determines access level |
 | GET | `/auth/google` | Public | Initiate OAuth |
 | GET | `/auth/google/callback` | Public | OAuth callback |

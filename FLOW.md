@@ -33,17 +33,24 @@
 
 ### Normal Path
 
+Two endpoints — same flow, role differs:
+
+| Endpoint | Role assigned |
+|---|---|
+| `POST /auth/register/user` | `USER` — regular church member |
+| `POST /auth/register/admin` | `ADMIN` — org administrator |
+
 ```
 Client                          Backend
   │                               │
-  │  POST /auth/register          │
+  │  POST /auth/register/user     │  ← or /register/admin
   │  { fullName, email, password }│
   │ ──────────────────────────────►
   │                               │  1. Check if email is already registered
   │                               │     → if yes: 409 Conflict
   │                               │  2. Hash password (bcrypt, salt: 12)
   │                               │  3. Create User record
-  │                               │     { role: USER, isEmailVerified: false }
+  │                               │     { role: USER|ADMIN, isEmailVerified: false }
   │                               │  4. Generate 6-digit OTP, hash it (bcrypt, salt: 10)
   │                               │  5. Save OTP to DB (expires in 10 min)
   │                               │  6. Send OTP to email via EmailService
@@ -71,7 +78,7 @@ Client                          Backend
 
 | Scenario | What Happens |
 |---------|-------------|
-| Email already registered | `POST /auth/register` → 409 Conflict |
+| Email already registered | `POST /auth/register/user` or `/register/admin` → 409 Conflict |
 | OTP expired (> 10 min) | `POST /auth/verify-email` → 400 "OTP is invalid or has expired" |
 | Wrong OTP entered | Same 400 error (bcrypt mismatch) |
 | OTP already used | Same 400 — `used: false` filter excludes it |
@@ -621,9 +628,9 @@ GET /health   (Public)
 
 | Role | How Assigned | What It Unlocks |
 |------|-------------|----------------|
-| `USER` | Default on registration | Personal features: journal, focus timer, user metadata, connect to church, submit prayer requests, view own communities, view org by ID, view orgs they belong to, view members list |
-| `ADMIN` | Manually assigned by SUPER_ADMIN | All USER features + full org management (create orgs, manage members, manage first-timers, salvation records, follow-ups, communities CRUD, most scripture endpoints) |
-| `SUPER_ADMIN` | Manually assigned | Full platform access — all endpoints |
+| `USER` | Registered via `POST /auth/register/user` | Personal features: journal, focus timer, user metadata, connect to church, submit prayer requests, view own communities, view org by ID, view orgs they belong to, view members list |
+| `ADMIN` | Registered via `POST /auth/register/admin` | All org management: create orgs, manage members, manage first-timers, salvation records, follow-ups, communities CRUD, most scripture endpoints |
+| `SUPER_ADMIN` | Manually assigned in DB | Full platform access — all endpoints + overall oversight of all organizations and analytics |
 
 ### Membership Roles (on Membership record — within an org)
 
@@ -637,7 +644,8 @@ GET /health   (Public)
 
 | Module | Endpoint | USER | ADMIN | SUPER_ADMIN |
 |--------|---------|:----:|:-----:|:-----------:|
-| Auth | POST /auth/register | ✓ | ✓ | ✓ |
+| Auth | POST /auth/register/user | Public | Public | Public |
+| Auth | POST /auth/register/admin | Public | Public | Public |
 | Auth | POST /auth/login | ✓ | ✓ | ✓ |
 | Auth | POST /auth/verify-email | ✓ | ✓ | ✓ |
 | Auth | POST /auth/refresh | ✓ | ✓ | ✓ |
