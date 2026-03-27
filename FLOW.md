@@ -11,7 +11,7 @@
 2. [Login](#2-login)
 3. [Token Refresh](#3-token-refresh)
 4. [Onboarding — User Metadata](#4-onboarding--user-metadata)
-5. [Organization Setup (Admin Flow)](#5-organization-setup-admin-flow)
+5. [Organization Setup (ADMIN / SUPER_ADMIN Only)](#5-organization-setup-admin--super_admin-only)
 6. [Switching into an Organization Context](#6-switching-into-an-organization-context)
 7. [Membership Management](#7-membership-management)
 8. [First-Timer / Church Care Flow](#8-first-timer--church-care-flow)
@@ -104,9 +104,9 @@ Client                          Backend
 ```
 
 **The `role` in the response tells the client what level of access to render:**
-- `USER` → regular app member
-- `ADMIN` → org admin (auto-set when they created an org)
-- `SUPER_ADMIN` → full platform access
+- `USER` → regular app member (default for all registrations)
+- `ADMIN` → org/platform admin (manually assigned by SUPER_ADMIN)
+- `SUPER_ADMIN` → full platform access (manually assigned)
 
 ### Edge Cases
 
@@ -136,9 +136,15 @@ Client                          Backend
 After login, the client may optionally create or update a `UserMetaData` record that stores profile preferences.
 
 ```
-POST /users/metadata
+POST /users/metadata                 (USER only)
   { userId, location, spiritualGoals, ... }
   → Creates the metadata record (1:1 with User)
+
+GET  /users/metadata/user/:userId    (USER only)
+  → Returns metadata with organization fully populated
+
+PATCH /users/metadata/:id            (USER only)
+  → Updates metadata fields
 ```
 
 ### Church Affiliation
@@ -146,7 +152,7 @@ POST /users/metadata
 A user can connect their profile to a church in two ways:
 
 ```
-PATCH /users/metadata/me/church
+PATCH /users/metadata/me/church      (USER only)
   Body (only ONE of):
     { organization: "<orgId>" }    ← church found via search (ObjectId)
     { churchName: "Grace Chapel" } ← free text if not in system
@@ -172,9 +178,9 @@ PATCH /users/metadata/me/church
 
 ---
 
-## 5. Organization Setup (Admin Flow)
+## 5. Organization Setup (ADMIN / SUPER_ADMIN Only)
 
-A user with a global token can create an organization. This is the entry point to the multi-tenant system.
+Only users with role `ADMIN` or `SUPER_ADMIN` can create an organization. This is the entry point to the multi-tenant system.
 
 ```
 Client                          Backend
@@ -186,7 +192,7 @@ Client                          Backend
   │    memberCountRange,          │
   │    organizationRole }         │
   │ ──────────────────────────────►
-  │  (requires global JWT)        │
+  │  (requires ADMIN/SUPER_ADMIN) │
   │                               │  1. Generate slug from name (or use provided slug)
   │                               │     e.g. "Prime Church Lagos" → "prime-church-lagos"
   │                               │     → if slug taken: 409 Conflict
@@ -197,12 +203,13 @@ Client                          Backend
   │                               │  5. Create Membership record for creator:
   │                               │     { role: OWNER, status: ACTIVE,
   │                               │       organizationRole: <from dto> }
-  │                               │  6. Promote creator's User.role to ADMIN
   │  ◄──────────────────────────────
   │  201 { org object + firstTimerQrCode }
 ```
 
 **What `organizationRole` means:** this is the creator's *church title* (e.g. `SENIOR_PASTOR`, `CHURCH_ADMIN`). It is informational only — access is controlled by `MembershipRole` (`OWNER`/`ADMIN`/`MEMBER`), not by this title.
+
+**Role note:** Creating an org does **not** change the creator's platform role. The creator must already be `ADMIN` or `SUPER_ADMIN` to reach this endpoint. Role assignment is managed separately by a `SUPER_ADMIN`.
 
 ### QR Code
 
@@ -212,19 +219,21 @@ The `firstTimerQrCode` field on the Organization is a Base64 PNG data URI. It ca
 
 To regenerate after a name/slug change:
 ```
-POST /organizations/:id/qr-code/regenerate
+POST /organizations/:id/qr-code/regenerate  (ADMIN/SUPER_ADMIN only)
   → Returns new { firstTimerQrCode }
 ```
 
 ### Other Organization Operations
 
-| Action | Endpoint |
-|--------|---------|
-| List user's orgs | `GET /organizations/mine` |
-| Find by slug | `GET /organizations/slug/:slug` |
-| Find by ID | `GET /organizations/:id` |
-| Update org | `PATCH /organizations/:id` |
-| Delete org | `DELETE /organizations/:id` (soft delete) |
+| Action | Endpoint | Access |
+|--------|---------|--------|
+| Create org | `POST /organizations` | ADMIN / SUPER_ADMIN |
+| List user's orgs | `GET /organizations/mine` | All authenticated |
+| Find by slug | `GET /organizations/slug/:slug` | ADMIN / SUPER_ADMIN |
+| Find by ID | `GET /organizations/:id` | All authenticated |
+| Update org | `PATCH /organizations/:id` | ADMIN / SUPER_ADMIN |
+| Delete org | `DELETE /organizations/:id` (soft delete) | ADMIN / SUPER_ADMIN |
+| Regenerate QR | `POST /organizations/:id/qr-code/regenerate` | ADMIN / SUPER_ADMIN |
 
 ---
 
@@ -263,10 +272,17 @@ Client                          Backend
 
 All routes under `/organizations/:organizationId/members` require a valid org-scoped token.
 
+### List Members
+
+```
+GET /organizations/:organizationId/members   (All authenticated org members)
+  → Returns paginated member list
+```
+
 ### Invite a Member
 
 ```
-POST /organizations/:organizationId/members/invite
+POST /organizations/:organizationId/members/invite   (ADMIN / SUPER_ADMIN only)
   { email, role? }    ← role defaults to MEMBER
 
   Flow:
@@ -280,7 +296,7 @@ POST /organizations/:organizationId/members/invite
 ### Update a Member's Role
 
 ```
-PATCH /organizations/:organizationId/members/:userId/role
+PATCH /organizations/:organizationId/members/:userId/role   (ADMIN / SUPER_ADMIN only)
   { role: OWNER | ADMIN | MEMBER }
 
   Rules:
@@ -292,7 +308,7 @@ PATCH /organizations/:organizationId/members/:userId/role
 ### Remove a Member
 
 ```
-DELETE /organizations/:organizationId/members/:userId
+DELETE /organizations/:organizationId/members/:userId   (ADMIN / SUPER_ADMIN only)
 
   Rules:
   - Actor cannot remove themselves (use /leave instead)
@@ -304,7 +320,7 @@ DELETE /organizations/:organizationId/members/:userId
 ### Leave an Organization
 
 ```
-DELETE /organizations/:organizationId/members/leave
+DELETE /organizations/:organizationId/members/leave   (ADMIN / SUPER_ADMIN only)
 
   Rules:
   - OWNER cannot leave (must transfer ownership first via role update, then leave)
@@ -318,7 +334,7 @@ DELETE /organizations/:organizationId/members/leave
 | Invite email not registered | 404 Not Found |
 | Invite already-active member | 409 Conflict |
 | Invite previously suspended member | Re-activates them |
-| MEMBER tries to invite | No explicit guard (relies on frontend); backend does not block by role here |
+| USER tries to invite/modify members | 403 Forbidden (RolesGuard blocks) |
 | MEMBER tries to update role | 403 Insufficient permissions |
 | Non-OWNER tries to assign OWNER | 403 Insufficient permissions |
 | OWNER tries to leave | 403 "Transfer ownership first" |
@@ -375,16 +391,18 @@ PENDING  ──► CONTACTED  ──► FOLLOWED_UP
 
 ## 9. Follow-Up & Church Dashboard
 
+All follow-up routes require `ADMIN` or `SUPER_ADMIN` role.
+
 ### Follow-Up Tasks
 
 Auto-created when a first-timer is registered (`followUpScheduledAt` = +3 days).
 Staff can also manage follow-ups manually.
 
-| Action | Endpoint |
-|--------|---------|
-| List by org | `GET /church/follow-up` (query by organizationId) |
-| List by first-timer | filter by `newMemberId` |
-| CRUD | Standard create/read/update/delete |
+| Action | Endpoint | Access |
+|--------|---------|--------|
+| List by org | `GET /church/follow-up` (query by organizationId) | ADMIN / SUPER_ADMIN |
+| List by first-timer | filter by `newMemberId` | ADMIN / SUPER_ADMIN |
+| CRUD | Standard create/read/update/delete | ADMIN / SUPER_ADMIN |
 
 ### Follow-Up Templates
 
@@ -416,16 +434,16 @@ GET /church/dashboard/trends    → week-on-week trend data
 
 ## 10. Prayer Requests (Org-Level)
 
-Org-scoped prayer requests submitted by members and managed by staff.
+Org-scoped prayer requests. Members can submit; ADMIN/SUPER_ADMIN manage them.
 
 ```
 All routes require org-scoped token + TenantGuard
 
-POST   /organizations/:organizationId/prayer-requests
-GET    /organizations/:organizationId/prayer-requests
-GET    /organizations/:organizationId/prayer-requests/:id
-PATCH  /organizations/:organizationId/prayer-requests/:id
-DELETE /organizations/:organizationId/prayer-requests/:id
+POST   /organizations/:organizationId/prayer-requests      (USER only — submit)
+GET    /organizations/:organizationId/prayer-requests      (ADMIN / SUPER_ADMIN)
+GET    /organizations/:organizationId/prayer-requests/:id  (ADMIN / SUPER_ADMIN)
+PATCH  /organizations/:organizationId/prayer-requests/:id  (ADMIN / SUPER_ADMIN)
+DELETE /organizations/:organizationId/prayer-requests/:id  (ADMIN / SUPER_ADMIN)
 ```
 
 **Status lifecycle:**
@@ -437,11 +455,12 @@ PENDING  ──► CONTACTED  ──► FOLLOWED_UP
 
 ## 11. Salvation Records
 
-Track decisions for Christ made during services.
+Track decisions for Christ made during services. ADMIN/SUPER_ADMIN only.
 
 ```
 All routes under /organizations/:organizationId/salvation-records
 Standard CRUD — org-scoped, TenantGuard protected
+Access: ADMIN / SUPER_ADMIN only
 
 Status lifecycle:
 PENDING  ──► CONTACTED  ──► FOLLOWED_UP
@@ -455,10 +474,22 @@ Sub-groups within an organization (e.g. small groups, cell groups).
 
 ```
 All routes under /organizations/:organizationId/communities
-Standard CRUD — org-scoped, TenantGuard protected
+Org-scoped, TenantGuard protected
 
 Fields: name, description, members (User[] references), profileImage
 ```
+
+| Action | Endpoint | Access |
+|--------|---------|--------|
+| Create community | `POST /organizations/:organizationId/communities` | ADMIN / SUPER_ADMIN |
+| List all communities | `GET /organizations/:organizationId/communities` | ADMIN / SUPER_ADMIN |
+| Get communities I belong to | `GET /organizations/:organizationId/communities/user` | USER (authenticated member) |
+| Get recent members | `GET /organizations/:organizationId/communities/recent-members` | ADMIN / SUPER_ADMIN |
+| Get community by ID | `GET /organizations/:organizationId/communities/:id` | All authenticated |
+| Update community | `PATCH /organizations/:organizationId/communities/:id` | ADMIN / SUPER_ADMIN |
+| Delete community | `DELETE /organizations/:organizationId/communities/:id` | ADMIN / SUPER_ADMIN |
+
+**`GET /organizations/:organizationId/communities/user`** — returns only communities where the authenticated user is listed as a member (`members` array contains `user.sub`). Uses `@CurrentUser()` to extract the user ID from the JWT.
 
 ---
 
@@ -467,7 +498,7 @@ Fields: name, description, members (User[] references), profileImage
 Personal sermon/devotional journaling. Scoped to the authenticated user — no org required.
 
 ```
-All routes require global JWT (no org context needed)
+All routes require global JWT (USER only — no org context needed)
 
 POST   /journal/entries   { title, scriptureReference?, content }
 GET    /journal/entries   ?page&limit&search&sort
@@ -485,9 +516,9 @@ Entries are filtered by userId from the JWT — users can only see their own ent
 One scripture record per user per day. Includes optional reminder preferences.
 
 ```
-All routes require global JWT
+GET    /scripture/today              → today's entry (All authenticated)
 
-GET    /scripture/today              → today's entry for the current user
+All other routes require ADMIN / SUPER_ADMIN:
 POST   /scripture                    { title, scriptureReference, date, content }
 GET    /scripture/user/:userId       → list entries for a user
 GET    /scripture/:date              → get entry by date (YYYY-MM-DD)
@@ -503,7 +534,7 @@ DELETE /scripture/:id
 Pomodoro-style 25-minute productivity sessions. On completion, the backend returns a scripture as a reward.
 
 ```
-All routes require global JWT
+All routes require global JWT (USER only)
 
 POST   /timer/sessions              → start a session (status: NOT_STARTED)
 GET    /timer/sessions              → list user's sessions
@@ -590,9 +621,9 @@ GET /health   (Public)
 
 | Role | How Assigned | What It Unlocks |
 |------|-------------|----------------|
-| `USER` | Default on registration | All personal features (journal, scripture, timer, metadata) |
-| `ADMIN` | Auto-set when user creates an org | All USER features + org management routes |
-| `SUPER_ADMIN` | Manually assigned | Full platform access |
+| `USER` | Default on registration | Personal features: journal, focus timer, user metadata, connect to church, submit prayer requests, view own communities, view org by ID, view orgs they belong to, view members list |
+| `ADMIN` | Manually assigned by SUPER_ADMIN | All USER features + full org management (create orgs, manage members, manage first-timers, salvation records, follow-ups, communities CRUD, most scripture endpoints) |
+| `SUPER_ADMIN` | Manually assigned | Full platform access — all endpoints |
 
 ### Membership Roles (on Membership record — within an org)
 
@@ -601,6 +632,40 @@ GET /health   (Public)
 | `OWNER` | Creator of the org | Everything; cannot leave without transferring ownership |
 | `ADMIN` | Promoted by OWNER | Invite/remove/update non-owners |
 | `MEMBER` | Default when invited | Read access only |
+
+### Endpoint Access Matrix
+
+| Module | Endpoint | USER | ADMIN | SUPER_ADMIN |
+|--------|---------|:----:|:-----:|:-----------:|
+| Auth | POST /auth/register | ✓ | ✓ | ✓ |
+| Auth | POST /auth/login | ✓ | ✓ | ✓ |
+| Auth | POST /auth/verify-email | ✓ | ✓ | ✓ |
+| Auth | POST /auth/refresh | ✓ | ✓ | ✓ |
+| Auth | POST /auth/switch-organization/:id | ✓ | ✓ | ✓ |
+| Organizations | POST /organizations | ✗ | ✓ | ✓ |
+| Organizations | GET /organizations/mine | ✓ | ✓ | ✓ |
+| Organizations | GET /organizations/:id | ✓ | ✓ | ✓ |
+| Organizations | GET /organizations/slug/:slug | ✗ | ✓ | ✓ |
+| Organizations | PATCH/DELETE /organizations/:id | ✗ | ✓ | ✓ |
+| Organizations | POST /organizations/:id/qr-code/regenerate | ✗ | ✓ | ✓ |
+| Members | GET /organizations/:orgId/members | ✓ | ✓ | ✓ |
+| Members | POST invite / PATCH role / DELETE | ✗ | ✓ | ✓ |
+| Communities | POST/GET all/PATCH/DELETE | ✗ | ✓ | ✓ |
+| Communities | GET /communities/user (own) | ✓ | ✓ | ✓ |
+| Communities | GET /communities/:id | ✓ | ✓ | ✓ |
+| Prayer Requests | POST (submit) | ✓ | ✓ | ✓ |
+| Prayer Requests | GET/PATCH/DELETE (manage) | ✗ | ✓ | ✓ |
+| Salvation Records | All CRUD | ✗ | ✓ | ✓ |
+| Follow-Up | All CRUD | ✗ | ✓ | ✓ |
+| User Metadata | All endpoints | ✓ | ✗ | ✗ |
+| Users Module | All endpoints | ✗ | ✓ | ✓ |
+| Org User Settings | All endpoints | ✗ | ✓ | ✓ |
+| Journal | All endpoints | ✓ | ✗ | ✗ |
+| Focus Timer | All endpoints | ✓ | ✗ | ✗ |
+| Daily Scripture | GET /scripture/today | ✓ | ✓ | ✓ |
+| Daily Scripture | All other endpoints | ✗ | ✓ | ✓ |
+| Prime Forms | POST /prime/* | Public | Public | Public |
+| Health | GET /health | Public | Public | Public |
 
 ### Guard Chain (every request)
 
@@ -635,6 +700,7 @@ Route Handler
 | 401 "You are not an active member of this organization" | switch-organization with no ACTIVE membership |
 | 401 "Your session has expired. Please log in again." | Expired JWT |
 | 401 "You are not logged in." | Missing JWT on protected route |
+| 403 "Forbidden resource" | Authenticated but insufficient role (RolesGuard) |
 
 ### Registration & OTP Errors
 
@@ -648,6 +714,7 @@ Route Handler
 
 | Code | Trigger |
 |------|---------|
+| 403 "Forbidden resource" | USER tries to create/update/delete an org |
 | 409 "Slug is already taken" | Org name collision on create |
 | 403 "Transfer ownership before leaving" | OWNER trying to leave |
 | 403 "Cannot remove the organization owner" | Trying to remove OWNER |
