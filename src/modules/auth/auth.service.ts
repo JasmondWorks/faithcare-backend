@@ -132,14 +132,14 @@ export class AuthService {
    */
   async login(dto: UserLoginDto) {
     const user = await this.userModel.findOne({ email: dto.email, isDeleted: false });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) throw new BadRequestException('Invalid credentials');
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+    if (!isMatch) throw new BadRequestException('Invalid credentials');
 
     if (!user.isEmailVerified) {
       await this.createAndSendOtp(user.email, 'email_verification');
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         'Email not verified. A new OTP has been sent to your email.',
       );
     }
@@ -164,7 +164,7 @@ export class AuthService {
         secret: this.config.get<string>('jwt.refreshSecret'),
       });
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new BadRequestException('Invalid or expired refresh token');
     }
 
     const user = await this.userModel.findById(payload.sub);
