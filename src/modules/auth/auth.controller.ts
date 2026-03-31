@@ -19,23 +19,26 @@ import { Public } from 'src/core/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 
 const REFRESH_COOKIE = 'refresh_token';
 
-// Origins that are allowed to call the refresh endpoint.
-// Must match the ALLOWED_ORIGINS env var (comma-separated, no trailing slashes).
+// Origins allowed to call the refresh endpoint (CSRF mitigation).
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? '')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
 
+// Cookie is set on the backend as a convenience for pure browser/React clients.
+// Next.js apps should read the refreshToken from the response body and set their
+// own first-party HttpOnly cookie via a server route handler.
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,       // required by SameSite=None
-  sameSite: 'none' as const, // cross-site: frontend and backend are on different origins
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — matches refreshExpiresIn
+  secure: true,
+  sameSite: 'none' as const,
+  maxAge: 30 * 24 * 60 * 60 * 1000,
 };
 
 @ApiTags('Authentication')
@@ -67,10 +70,11 @@ export class AuthController {
   @ApiOperation({
     summary: 'Log in with email and password',
     description:
-      'Works for all users. The `role` field in the response determines the authorization ' +
-      'level on the client (USER · ADMIN · SUPER_ADMIN).',
+      'Returns both tokens. The backend also sets the refresh token as an HttpOnly cookie ' +
+      '(SameSite=None) for pure React clients. Next.js apps should read refreshToken from ' +
+      'the body and store it via a server route handler for a same-site cookie.',
   })
-  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 200, description: 'Login successful — refreshToken in body and cookie' })
   @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })
   async login(
     @Body() loginDto: UserLoginDto,
@@ -78,8 +82,7 @@ export class AuthController {
   ) {
     const result = await this.authService.login(loginDto);
     res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
-    const { refreshToken: _, ...data } = result.data;
-    return { ...result, data };
+    return result;
   }
 
   @Public()
@@ -105,20 +108,25 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Silently exchange the HTTP-only refresh cookie for a new access token' })
+  @ApiOperation({
+    summary: 'Exchange a refresh token for a new access token',
+    description:
+      'Accepts the refresh token from the request body OR the `refresh_token` HttpOnly cookie. ' +
+      'Body takes precedence. Next.js apps should proxy this through a route handler that ' +
+      'reads the cookie server-side and forwards the token in the body.',
+  })
   @ApiResponse({ status: 200, description: 'New access_token returned' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid refresh token cookie' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid refresh token' })
   @ApiResponse({ status: 403, description: 'Request origin not allowed' })
-  refreshToken(@Req() req: Request) {
-    // CSRF mitigation: validate Origin header against the allowlist.
-    // A malicious site making a cross-site POST will either omit the Origin
-    // header or send one not in the allowlist — both are rejected.
+  refreshToken(@Req() req: Request, @Body() body: RefreshTokenDto) {
+    // CSRF mitigation: reject requests from unrecognised origins.
     const origin = req.headers['origin'] as string | undefined;
     if (origin && ALLOWED_ORIGINS.length > 0 && !ALLOWED_ORIGINS.includes(origin)) {
       throw new ForbiddenException('Request origin not allowed');
     }
 
-    const token: string | undefined = req.cookies?.[REFRESH_COOKIE];
+    // Body takes precedence (Next.js proxy pattern); fall back to cookie.
+    const token: string | undefined = body?.refreshToken ?? req.cookies?.[REFRESH_COOKIE];
     if (!token) throw new UnauthorizedException('No refresh token');
     return this.authService.refreshToken(token);
   }
@@ -127,7 +135,7 @@ export class AuthController {
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Verify email with OTP code sent during registration' })
-  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 200, description: 'Email verified — refreshToken in body and cookie' })
   @ApiResponse({ status: 400, description: 'OTP is invalid or has expired' })
   async verifyEmailOtp(
     @Body() verifyOtpDto: VerifyOtpDto,
@@ -135,8 +143,7 @@ export class AuthController {
   ) {
     const result = await this.authService.verifyEmailOtp(verifyOtpDto);
     res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
-    const { refreshToken: _, ...data } = result.data;
-    return { ...result, data };
+    return result;
   }
 
   @Public()
