@@ -10,7 +10,22 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
-  app.enableCors({ origin: '*', credentials: true });
+
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim());
+
+  app.enableCors({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow server-to-server requests (no Origin header) and listed origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin ${origin} not allowed`));
+      }
+    },
+    credentials: true,
+  });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new GlobalErrorFilter());
   app.setGlobalPrefix('api/v1', { exclude: ['/'] });
