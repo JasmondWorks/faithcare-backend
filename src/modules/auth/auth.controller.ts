@@ -24,8 +24,8 @@ import { ResendOtpDto } from './dto/resend-otp.dto';
 const REFRESH_COOKIE = 'refresh_token';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  secure: true,       // required by SameSite=None
+  sameSite: 'none' as const, // cross-site: frontend and backend are on different origins
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — matches refreshExpiresIn
 };
 
