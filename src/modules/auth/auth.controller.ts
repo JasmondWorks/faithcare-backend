@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -22,6 +23,14 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 
 const REFRESH_COOKIE = 'refresh_token';
+
+// Origins that are allowed to call the refresh endpoint.
+// Must match the ALLOWED_ORIGINS env var (comma-separated, no trailing slashes).
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: true,       // required by SameSite=None
@@ -99,7 +108,16 @@ export class AuthController {
   @ApiOperation({ summary: 'Silently exchange the HTTP-only refresh cookie for a new access token' })
   @ApiResponse({ status: 200, description: 'New access_token returned' })
   @ApiResponse({ status: 401, description: 'Missing or invalid refresh token cookie' })
+  @ApiResponse({ status: 403, description: 'Request origin not allowed' })
   refreshToken(@Req() req: Request) {
+    // CSRF mitigation: validate Origin header against the allowlist.
+    // A malicious site making a cross-site POST will either omit the Origin
+    // header or send one not in the allowlist — both are rejected.
+    const origin = req.headers['origin'] as string | undefined;
+    if (origin && ALLOWED_ORIGINS.length > 0 && !ALLOWED_ORIGINS.includes(origin)) {
+      throw new ForbiddenException('Request origin not allowed');
+    }
+
     const token: string | undefined = req.cookies?.[REFRESH_COOKIE];
     if (!token) throw new UnauthorizedException('No refresh token');
     return this.authService.refreshToken(token);
