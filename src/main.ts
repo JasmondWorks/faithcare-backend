@@ -12,10 +12,14 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    // Reflect the request origin back — allows all origins while satisfying
-    // the CORS spec requirement that credentials requests never use '*'
-    origin: true,
+    origin: (_origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Reflect any origin back — never returns '*', satisfying the CORS spec
+      // requirement that credentialed requests cannot use a wildcard origin.
+      callback(null, true);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new GlobalErrorFilter());
