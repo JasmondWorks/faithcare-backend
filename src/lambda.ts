@@ -24,7 +24,14 @@ async function bootstrap(): Promise<void> {
     logger: ['error', 'warn'],
   });
 
-  app.enableCors({ origin: '*' });
+  app.enableCors({
+    origin: (_origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      callback(null, true); // reflect request origin — never returns '*'
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new GlobalErrorFilter());
   app.setGlobalPrefix('api/v1', { exclude: ['/'] });
