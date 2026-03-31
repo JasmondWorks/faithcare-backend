@@ -16,7 +16,6 @@ import { EmailService } from './services/email.service';
 import { MembershipService } from '../organizations/services/membership.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { Role } from 'src/core/enums/role.enum';
@@ -157,10 +156,10 @@ export class AuthService {
     };
   }
 
-  async refreshToken(dto: RefreshTokenDto) {
+  async refreshToken(token: string) {
     let payload: { sub: string };
     try {
-      payload = this.jwtService.verify(dto.refreshToken, {
+      payload = this.jwtService.verify(token, {
         secret: this.config.get<string>('jwt.refreshSecret'),
       });
     } catch {

@@ -5,18 +5,29 @@ import {
   Body,
   Query,
   Param,
+  Req,
+  Res,
   HttpCode,
   HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
+
+const REFRESH_COOKIE = 'refresh_token';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — matches refreshExpiresIn
+};
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -52,8 +63,14 @@ export class AuthController {
   })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })
-  login(@Body() loginDto: UserLoginDto) {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: UserLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(loginDto);
+    res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
+    const { refreshToken: _, ...data } = result.data;
+    return { ...result, data };
   }
 
   @Public()
@@ -79,11 +96,13 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Exchange a refresh token for a new access token' })
+  @ApiOperation({ summary: 'Silently exchange the HTTP-only refresh cookie for a new access token' })
   @ApiResponse({ status: 200, description: 'New access_token returned' })
-  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
-  refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshToken(refreshTokenDto);
+  @ApiResponse({ status: 401, description: 'Missing or invalid refresh token cookie' })
+  refreshToken(@Req() req: Request) {
+    const token: string | undefined = req.cookies?.[REFRESH_COOKIE];
+    if (!token) throw new UnauthorizedException('No refresh token');
+    return this.authService.refreshToken(token);
   }
 
   @Public()
@@ -92,8 +111,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify email with OTP code sent during registration' })
   @ApiResponse({ status: 200, description: 'Email verified successfully' })
   @ApiResponse({ status: 400, description: 'OTP is invalid or has expired' })
-  verifyEmailOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    return this.authService.verifyEmailOtp(verifyOtpDto);
+  async verifyEmailOtp(
+    @Body() verifyOtpDto: VerifyOtpDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verifyEmailOtp(verifyOtpDto);
+    res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
+    const { refreshToken: _, ...data } = result.data;
+    return { ...result, data };
   }
 
   @Public()
