@@ -11,6 +11,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorFilter } from './core/errors/global-error.filter';
 import { AppModule } from './app.module';
 import type { IncomingMessage, ServerResponse } from 'http';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const cookieParser = require('cookie-parser');
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void;
 
@@ -24,6 +26,7 @@ async function bootstrap(): Promise<void> {
     logger: ['error', 'warn'],
   });
 
+  app.use(cookieParser());
   app.enableCors({
     origin: (_origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       callback(null, true); // reflect request origin — never returns '*'
