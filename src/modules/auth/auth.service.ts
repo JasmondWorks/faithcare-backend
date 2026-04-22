@@ -170,12 +170,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    console.log('[refreshToken] payload.sub:', payload.sub, typeof payload.sub);
-
     const user = await this.userModel.findById(payload.sub);
-
-    console.log('[refreshToken] findById result:', user ? user._id : null);
-
     if (!user) throw new UnauthorizedException('User not found');
 
     const { accessToken } = this.signTokens(user);
