@@ -15,12 +15,19 @@ export class FocusTimerRepository extends BaseRepository<FocusTimerDocument> {
   }
 
   async findByUser(userId: string) {
-    return this.model.find({ userId, isDeleted: false }).sort({ createdAt: -1 }).exec();
+    return this.model
+      .find({ userId, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async findActiveByUser(userId: string) {
     return this.model
-      .findOne({ userId, status: FocusTimerStatus.IN_PROGRESS, isDeleted: false })
+      .findOne({
+        userId,
+        status: FocusTimerStatus.IN_PROGRESS,
+        isDeleted: false,
+      })
       .exec();
   }
 }

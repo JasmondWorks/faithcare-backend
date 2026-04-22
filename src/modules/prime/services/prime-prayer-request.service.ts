@@ -6,7 +6,9 @@ import { CreatePrimePrayerRequestDto } from '../dto/create-prime-prayer-request.
 
 @Injectable()
 export class PrimePrayerRequestService extends BaseService<PrimePrayerRequestDocument> {
-  constructor(private primePrayerRequestRepository: PrimePrayerRequestRepository) {
+  constructor(
+    private primePrayerRequestRepository: PrimePrayerRequestRepository,
+  ) {
     super(primePrayerRequestRepository);
   }
 

@@ -31,7 +31,7 @@ export class GlobalErrorFilter implements ExceptionFilter {
         message = (bodyObj.message as string | string[]) ?? message;
         errors = bodyObj.errors;
       } else {
-        message = body as string;
+        message = body;
       }
     } else if (exception instanceof Error) {
       this.logger.error(exception.message, exception.stack);

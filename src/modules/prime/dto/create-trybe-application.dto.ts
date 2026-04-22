@@ -30,7 +30,9 @@ export class CreateTrybeApplicationDto {
   @ApiProperty({
     enum: TrybeMembershipStatus,
     enumName: 'TrybeMembershipStatus',
-    description: 'Whether the applicant is already a church member. Allowed values: ' + Object.values(TrybeMembershipStatus).join(' | '),
+    description:
+      'Whether the applicant is already a church member. Allowed values: ' +
+      Object.values(TrybeMembershipStatus).join(' | '),
     example: TrybeMembershipStatus.YES,
   })
   @IsEnum(TrybeMembershipStatus)
@@ -43,20 +45,26 @@ export class CreateTrybeApplicationDto {
   @ApiProperty({
     enum: TrybeIntent,
     enumName: 'TrybeIntent',
-    description: 'What the applicant would like to do in Trybe. Allowed values: ' + Object.values(TrybeIntent).join(' | '),
+    description:
+      'What the applicant would like to do in Trybe. Allowed values: ' +
+      Object.values(TrybeIntent).join(' | '),
     example: TrybeIntent.JOIN,
   })
   @IsEnum(TrybeIntent)
   whatWouldYouLikeToDo: TrybeIntent;
 
-  @ApiProperty({ example: 'I want to grow and connect with like-minded creatives.' })
+  @ApiProperty({
+    example: 'I want to grow and connect with like-minded creatives.',
+  })
   @IsString()
   whyWouldYouLikeToJoin: string;
 
   @ApiProperty({
     enum: TrybeCategory,
     enumName: 'TrybeCategory',
-    description: 'The Trybe category the applicant wants to join. Allowed values: ' + Object.values(TrybeCategory).join(' | '),
+    description:
+      'The Trybe category the applicant wants to join. Allowed values: ' +
+      Object.values(TrybeCategory).join(' | '),
     example: TrybeCategory.CREATIVE,
   })
   @IsEnum(TrybeCategory)

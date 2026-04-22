@@ -31,34 +31,38 @@ export class OrganizationController {
 
   @Post()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)' })
-  create(
-    @Body() dto: CreateOrganizationDto,
-    @CurrentUser() user: any,
-  ) {
+  @ApiOperation({
+    summary:
+      'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)',
+  })
+  create(@Body() dto: CreateOrganizationDto, @CurrentUser() user: any) {
     return this.organizationService.createWithOwner(dto, user.id);
   }
 
   @Get('slug/:slug')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Find an organization by its URL slug (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Find an organization by its URL slug (ADMIN/SUPER_ADMIN only)',
+  })
   findBySlug(@Param('slug') slug: string) {
     return this.organizationService.findBySlug(slug);
   }
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update organization details (ADMIN/SUPER_ADMIN only)' })
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateOrganizationDto,
-  ) {
+  @ApiOperation({
+    summary: 'Update organization details (ADMIN/SUPER_ADMIN only)',
+  })
+  update(@Param('id') id: string, @Body() dto: UpdateOrganizationDto) {
     return this.organizationService.update(id, dto);
   }
 
   @Post(':id/qr-code/regenerate')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Regenerate the first-timer QR code for an organization (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'Regenerate the first-timer QR code for an organization (ADMIN/SUPER_ADMIN only)',
+  })
   regenerateQrCode(@Param('id') id: string) {
     return this.organizationService.regenerateQrCode(id);
   }
@@ -66,7 +70,9 @@ export class OrganizationController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Soft-delete an organization (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Soft-delete an organization (ADMIN/SUPER_ADMIN only)',
+  })
   delete(@Param('id') id: string) {
     return this.organizationService.softDelete(id);
   }
@@ -74,7 +80,9 @@ export class OrganizationController {
   // ── All authenticated users ─────────────────────────────────────
 
   @Get('mine')
-  @ApiOperation({ summary: 'List all organizations the authenticated user belongs to' })
+  @ApiOperation({
+    summary: 'List all organizations the authenticated user belongs to',
+  })
   mine(@CurrentUser() user: any) {
     return this.membershipService.getUserOrganizations(user.id);
   }

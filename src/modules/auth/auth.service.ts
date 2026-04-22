@@ -16,7 +16,6 @@ import { EmailService } from './services/email.service';
 import { MembershipService } from '../organizations/services/membership.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { Role } from 'src/core/enums/role.enum';
@@ -47,14 +46,14 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get<string>('jwt.accessSecret') as string,
-      expiresIn: this.config.get('jwt.accessExpiresIn') as any,
+      expiresIn: this.config.get('jwt.accessExpiresIn'),
     });
 
     const refreshToken = this.jwtService.sign(
       { sub: payload.sub },
       {
         secret: this.config.get<string>('jwt.refreshSecret') as string,
-        expiresIn: this.config.get('jwt.refreshExpiresIn') as any,
+        expiresIn: this.config.get('jwt.refreshExpiresIn'),
       },
     );
 
@@ -93,7 +92,7 @@ export class AuthService {
 
   // ── Auth flows ─────────────────────────────────────────────────
 
-  async userRegister(dto: UserRegisterDto) {
+  private async register(dto: UserRegisterDto, role: Role) {
     const existing = await this.userModel.findOne({ email: dto.email });
     if (existing) throw new ConflictException('Email already registered');
 
@@ -103,7 +102,7 @@ export class AuthService {
       name: dto.fullName,
       email: dto.email,
       password: hashedPassword,
-      role: Role.USER,
+      role,
       isEmailVerified: false,
     });
 
@@ -111,19 +110,31 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Registration successful. Check your email for the verification OTP.',
+      message:
+        'Registration successful. Check your email for the verification OTP.',
     };
+  }
+
+  async userRegister(dto: UserRegisterDto) {
+    return this.register(dto, Role.USER);
+  }
+
+  async adminRegister(dto: UserRegisterDto) {
+    return this.register(dto, Role.ADMIN);
   }
 
   /**
    * Unified login for all users.
    * The `role` in the response determines authorization level on the client:
-   *   USER       → regular app user
-   *   ADMIN      → organization admin (set automatically on org creation)
-   *   SUPER_ADMIN → full platform access
+   *   USER        → regular app user (registered via /auth/register/user)
+   *   ADMIN       → organization admin (registered via /auth/register/admin)
+   *   SUPER_ADMIN → full platform access (manually assigned)
    */
   async login(dto: UserLoginDto) {
-    const user = await this.userModel.findOne({ email: dto.email, isDeleted: false });
+    const user = await this.userModel.findOne({
+      email: dto.email,
+      isDeleted: false,
+    });
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
@@ -149,10 +160,10 @@ export class AuthService {
     };
   }
 
-  async refreshToken(dto: RefreshTokenDto) {
+  async refreshToken(token: string) {
     let payload: { sub: string };
     try {
-      payload = this.jwtService.verify(dto.refreshToken, {
+      payload = this.jwtService.verify(token, {
         secret: this.config.get<string>('jwt.refreshSecret'),
       });
     } catch {
@@ -163,7 +174,10 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
 
     const { accessToken } = this.signTokens(user);
-    return { success: true, data: { accessToken, tokenType: 'Bearer', expiresIn: 28800 } };
+    return {
+      success: true,
+      data: { accessToken, tokenType: 'Bearer', expiresIn: 28800 },
+    };
   }
 
   /**
@@ -177,7 +191,9 @@ export class AuthService {
       organizationId,
     );
     if (!membership) {
-      throw new UnauthorizedException('You are not an active member of this organization');
+      throw new UnauthorizedException(
+        'You are not an active member of this organization',
+      );
     }
 
     const user = await this.userModel.findById(userId);
@@ -193,7 +209,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get<string>('jwt.accessSecret') as string,
-      expiresIn: this.config.get('jwt.accessExpiresIn') as any,
+      expiresIn: this.config.get('jwt.accessExpiresIn'),
     });
 
     return {
@@ -207,12 +223,14 @@ export class AuthService {
     };
   }
 
-  async googleAuth() {
+  googleAuth() {
     return { message: 'Redirecting to Google OAuth' };
   }
 
-  async googleCallback(code: string, _state: string) {
-    return { message: 'Google OAuth — implementation requires Google credentials' };
+  googleCallback(_code: string, _state: string) {
+    return {
+      message: 'Google OAuth — implementation requires Google credentials',
+    };
   }
 
   // ── OTP verification ───────────────────────────────────────────
@@ -228,7 +246,8 @@ export class AuthService {
     if (!record) throw new BadRequestException('OTP is invalid or has expired');
 
     const isMatch = await bcrypt.compare(dto.otp, record.hashedOtp);
-    if (!isMatch) throw new BadRequestException('OTP is invalid or has expired');
+    if (!isMatch)
+      throw new BadRequestException('OTP is invalid or has expired');
 
     await this.otpModel.findByIdAndUpdate(record._id, { used: true });
 

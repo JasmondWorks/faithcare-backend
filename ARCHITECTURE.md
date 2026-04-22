@@ -296,8 +296,8 @@ ADMIN-only routes            ✗       ✓ (if ADMIN)     ✓ (if ADMIN)
 ```
 Platform Roles (Role enum — on User):
   SUPER_ADMIN        ← full platform access (manually assigned)
-    └── ADMIN        ← org admin; auto-promoted on org creation
-          └── USER   ← default for all registered users
+    └── ADMIN        ← org admin; registered via POST /auth/register/admin
+          └── USER   ← default; registered via POST /auth/register/user
 
 Membership Roles (MembershipRole enum — on Membership):
   OWNER  → full control of the org
@@ -607,13 +607,17 @@ npm run build
 
 ---
 
-### Decision 7 — Single Unified Login Endpoint + Role-Driven Authorization
+### Decision 7 — Split Registration Endpoints + Role-Driven Authorization
 
-**Chosen:** `POST /auth/login` serves all users. The `role` field in the JWT and response determines authorization level (`USER` · `ADMIN` · `SUPER_ADMIN`).
+**Chosen:** Two separate registration endpoints assign the role at account creation time:
+- `POST /auth/register/user`  → `role: USER`
+- `POST /auth/register/admin` → `role: ADMIN`
 
-**`ADMIN` is set automatically** when a user creates an organization — they are the org's owner, so they receive elevated platform access. There is no separate "organization admin" role; `ADMIN` is the only elevated role below `SUPER_ADMIN`.
+Login remains a single endpoint (`POST /auth/login`) for all roles. The `role` field in the JWT and response tells the client which UI and features to enable (`USER` · `ADMIN` · `SUPER_ADMIN`).
 
-**Why:** There is no functional difference between "admin login" and "user login" — both are email + password. Splitting them creates confusion and redundant code. The client reads `user.role` to decide which UI and features to enable.
+`SUPER_ADMIN` is the only role that cannot be self-registered — it is assigned manually in the database and has oversight of all organizations and platform analytics.
+
+**Why split registration?** The registration endpoint is the natural point to assign intent. An org admin signs up knowing they are managing a church — routing them through `/register/admin` makes the role explicit at onboarding rather than requiring a separate promotion step later. The login flow is unchanged; it simply reads whatever role is stored on the user document.
 
 ---
 
@@ -639,7 +643,7 @@ npm run build
 |-------|---------|---------|
 | `69bd8cd5ec1a44c866c52113` | `PrimeModule` schemas/services | Prime Church's MongoDB `_id` |
 | `10 minutes` | `AuthService.createAndSendOtp()` | OTP expiry window |
-| `salt: 12` | `AuthService.userRegister()` | bcrypt cost factor for passwords |
+| `salt: 12` | `AuthService` (private `register()`) | bcrypt cost factor for passwords |
 | `salt: 10` | `AuthService.createAndSendOtp()` | bcrypt cost factor for OTP hashes |
 | `28800` (8h) | `AuthService.login()` | Access token TTL in seconds |
 | `90d` | `AuthService.signTokens()` | Refresh token TTL |

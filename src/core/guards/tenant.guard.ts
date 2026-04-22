@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { MembershipService } from 'src/modules/organizations/services/membership.service';
 
 /**
@@ -22,7 +23,7 @@ export class TenantGuard implements CanActivate {
   constructor(private readonly membershipService: MembershipService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const user = request.user;
 
     if (!user?.activeOrganizationId) {
@@ -31,7 +32,8 @@ export class TenantGuard implements CanActivate {
       );
     }
 
-    const routeOrgId: string = request.params?.organizationId;
+    const routeOrgId =
+      (request.params as Record<string, string>)?.organizationId ?? '';
 
     if (routeOrgId && user.activeOrganizationId !== routeOrgId) {
       throw new ForbiddenException(
@@ -46,7 +48,9 @@ export class TenantGuard implements CanActivate {
     );
 
     if (!membership) {
-      throw new ForbiddenException('You are not an active member of this organization.');
+      throw new ForbiddenException(
+        'You are not an active member of this organization.',
+      );
     }
 
     return true;

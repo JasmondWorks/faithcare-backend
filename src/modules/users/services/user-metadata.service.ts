@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { BaseService } from 'src/core/services/base.service';
 import { UserMetaDataDocument } from '../schemas/user-metadata.schema';
 import { UserMetaDataRepository } from '../repositories/user-metadata.repository';
@@ -22,10 +26,14 @@ export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
     dto: { organization?: string | null; churchName?: string | null },
   ) {
     if (!dto.organization && !dto.churchName) {
-      throw new BadRequestException('Provide either organization or churchName');
+      throw new BadRequestException(
+        'Provide either organization or churchName',
+      );
     }
     if (dto.organization && dto.churchName) {
-      throw new BadRequestException('Provide only one of organization or churchName, not both');
+      throw new BadRequestException(
+        'Provide only one of organization or churchName, not both',
+      );
     }
 
     const metadata = await this.userMetaDataRepository.findByUserId(userId);
@@ -35,7 +43,10 @@ export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
       ? { organization: dto.organization, churchName: null }
       : { organization: null, churchName: dto.churchName };
 
-    await this.userMetaDataRepository.update((metadata._id as any).toString(), update);
+    await this.userMetaDataRepository.update(
+      (metadata._id as any).toString(),
+      update,
+    );
     return this.userMetaDataRepository.findByUserId(userId);
   }
 }

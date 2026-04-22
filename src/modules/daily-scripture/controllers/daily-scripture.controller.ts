@@ -33,45 +33,57 @@ export class DailyScriptureController {
 
   @Post()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Add a new scripture to the daily rotation (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'Add a new scripture to the daily rotation (ADMIN/SUPER_ADMIN only)',
+  })
   create(@Body() createDailyScriptureDto: CreateDailyScriptureDto) {
     return this.dailyScriptureService.create(createDailyScriptureDto);
   }
 
   @Get('user/:userId')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: "List all of a user's daily scriptures (ADMIN/SUPER_ADMIN only)" })
+  @ApiOperation({
+    summary: "List all of a user's daily scriptures (ADMIN/SUPER_ADMIN only)",
+  })
   findByUser(@Param('userId') userId: string) {
     return this.dailyScriptureService.findByUser(userId);
   }
 
   @Get(':date')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Get scripture for a specific date (YYYY-MM-DD) (ADMIN/SUPER_ADMIN only)' })
-  findByDate(
-    @Param('date') date: string,
-    @Query('userId') userId: string,
-  ) {
+  @ApiOperation({
+    summary:
+      'Get scripture for a specific date (YYYY-MM-DD) (ADMIN/SUPER_ADMIN only)',
+  })
+  findByDate(@Param('date') date: string, @Query('userId') userId: string) {
     return this.dailyScriptureService.findByUserAndDate(userId, new Date(date));
   }
 
   @Patch('reminder/preferences')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Set preferred daily reminder time and channel (ADMIN/SUPER_ADMIN only)' })
-  updateReminderPreferences(@Body() body: any) {
+  @ApiOperation({
+    summary:
+      'Set preferred daily reminder time and channel (ADMIN/SUPER_ADMIN only)',
+  })
+  updateReminderPreferences(@Body() _body: any) {
     return { success: true, message: 'Preferences saved' };
   }
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update a daily scripture entry (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Update a daily scripture entry (ADMIN/SUPER_ADMIN only)',
+  })
   update(@Param('id') id: string, @Body() updateDto: UpdateDailyScriptureDto) {
     return this.dailyScriptureService.update(id, updateDto);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Delete a daily scripture entry (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Delete a daily scripture entry (ADMIN/SUPER_ADMIN only)',
+  })
   delete(@Param('id') id: string) {
     return this.dailyScriptureService.delete(id);
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { BaseService } from 'src/core/services/base.service';
 import { UserDocument } from '../schemas/user.schema';
 import { UsersRepository } from '../repositories/user.repository';
@@ -9,10 +9,20 @@ export class UsersService extends BaseService<UserDocument> {
     super(usersRepository);
   }
 
+  async getMe(userId: string) {
+    const user = await this.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    const raw = user.toObject() as Record<string, unknown>;
+    const { password: _pw, ...profile } = raw;
+    void _pw;
+    return { success: true, data: profile };
+  }
+
   async findByEmail(email: string) {
     return this.usersRepository.findByEmail(email);
   }
-  async findByUsername(username: string) {
+
+  findByUsername(username: string) {
     return username;
   }
 }

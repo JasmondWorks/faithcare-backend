@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BaseRepository } from 'src/core/repositories/base.repository';
-import { DailyScripture, DailyScriptureDocument } from '../schemas/daily-scripture.schema';
+import {
+  DailyScripture,
+  DailyScriptureDocument,
+} from '../schemas/daily-scripture.schema';
 
 @Injectable()
 export class DailyScriptureRepository extends BaseRepository<DailyScriptureDocument> {
@@ -14,7 +17,10 @@ export class DailyScriptureRepository extends BaseRepository<DailyScriptureDocum
   }
 
   async findByUser(userId: string) {
-    return this.model.find({ userId, isDeleted: false }).sort({ date: -1 }).exec();
+    return this.model
+      .find({ userId, isDeleted: false })
+      .sort({ date: -1 })
+      .exec();
   }
 
   async findByUserAndDate(userId: string, date: Date) {

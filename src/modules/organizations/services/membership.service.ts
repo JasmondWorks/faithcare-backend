@@ -32,7 +32,11 @@ export class MembershipService {
   }
 
   /** Create OWNER membership when user creates an org */
-  async createOwnership(userId: string, organizationId: string, organizationRole: OrganizationRole) {
+  async createOwnership(
+    userId: string,
+    organizationId: string,
+    organizationRole: OrganizationRole,
+  ) {
     return this.membershipRepo.create({
       userId,
       organization: organizationId,
@@ -49,14 +53,23 @@ export class MembershipService {
     invitedByUserId: string,
     dto: InviteMemberDto,
   ) {
-    const targetUser = await this.userModel.findOne({ email: dto.email, isDeleted: false });
-    if (!targetUser) throw new NotFoundException('No user found with that email');
+    const targetUser = await this.userModel.findOne({
+      email: dto.email,
+      isDeleted: false,
+    });
+    if (!targetUser)
+      throw new NotFoundException('No user found with that email');
 
     const targetId = (targetUser._id as any).toString();
-    const existing = await this.membershipRepo.findByUserAndOrg(targetId, organizationId);
+    const existing = await this.membershipRepo.findByUserAndOrg(
+      targetId,
+      organizationId,
+    );
 
     if (existing && existing.status === MembershipStatus.ACTIVE) {
-      throw new ConflictException('User is already a member of this organization');
+      throw new ConflictException(
+        'User is already a member of this organization',
+      );
     }
 
     // Re-activate if previously suspended
@@ -92,20 +105,27 @@ export class MembershipService {
 
     if (
       actorMembership.role === MembershipRole.MEMBER ||
-      (dto.role === MembershipRole.OWNER && actorMembership.role !== MembershipRole.OWNER)
+      (dto.role === MembershipRole.OWNER &&
+        actorMembership.role !== MembershipRole.OWNER)
     ) {
-      throw new ForbiddenException('Insufficient permissions to assign this role');
+      throw new ForbiddenException(
+        'Insufficient permissions to assign this role',
+      );
     }
 
     const targetMembership = await this.membershipRepo.findActiveMembership(
       targetUserId,
       organizationId,
     );
-    if (!targetMembership) throw new NotFoundException('Member not found in this organization');
+    if (!targetMembership)
+      throw new NotFoundException('Member not found in this organization');
 
-    return this.membershipRepo.update((targetMembership._id as any).toString(), {
-      role: dto.role,
-    });
+    return this.membershipRepo.update(
+      (targetMembership._id as any).toString(),
+      {
+        role: dto.role,
+      },
+    );
   }
 
   /** Remove a member — OWNERs cannot be removed; only ADMIN+ can remove others */
@@ -140,8 +160,12 @@ export class MembershipService {
 
   /** Leave an organization — OWNER must transfer ownership first */
   async leaveOrganization(userId: string, organizationId: string) {
-    const membership = await this.membershipRepo.findActiveMembership(userId, organizationId);
-    if (!membership) throw new NotFoundException('You are not a member of this organization');
+    const membership = await this.membershipRepo.findActiveMembership(
+      userId,
+      organizationId,
+    );
+    if (!membership)
+      throw new NotFoundException('You are not a member of this organization');
     if (membership.role === MembershipRole.OWNER) {
       throw new ForbiddenException(
         'Transfer ownership to another member before leaving',

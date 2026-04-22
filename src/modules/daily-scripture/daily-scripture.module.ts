@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { DailyScripture, DailyScriptureSchema } from './schemas/daily-scripture.schema';
+import {
+  DailyScripture,
+  DailyScriptureSchema,
+} from './schemas/daily-scripture.schema';
 import { DailyScriptureRepository } from './repositories/daily-scripture.repository';
 import { DailyScriptureService } from './services/daily-scripture.service';
 import { DailyScriptureController } from './controllers/daily-scripture.controller';

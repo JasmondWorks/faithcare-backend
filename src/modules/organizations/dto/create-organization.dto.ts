@@ -1,4 +1,10 @@
-import { IsEmail, IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Denomination } from 'src/core/enums/denomination.enum';
 import { MemberCountRange } from 'src/core/enums/member-count-range.enum';
@@ -15,7 +21,9 @@ export class CreateOrganizationDto {
   })
   @IsOptional()
   @IsString()
-  @Matches(/^[a-z0-9-]+$/, { message: 'slug must be lowercase letters, numbers and hyphens only' })
+  @Matches(/^[a-z0-9-]+$/, {
+    message: 'slug must be lowercase letters, numbers and hyphens only',
+  })
   slug?: string;
 
   @ApiProperty({ example: 'primechurchofficial@example.com' })
@@ -51,11 +59,18 @@ export class CreateOrganizationDto {
   @IsString()
   websiteUrl?: string;
 
-  @ApiProperty({ enum: MemberCountRange, example: MemberCountRange.RANGE_101_250 })
+  @ApiProperty({
+    enum: MemberCountRange,
+    example: MemberCountRange.RANGE_101_250,
+  })
   @IsEnum(MemberCountRange)
   memberCountRange: MemberCountRange;
 
-  @ApiProperty({ enum: OrganizationRole, example: OrganizationRole.SENIOR_PASTOR, description: "The creator's role/title within the church" })
+  @ApiProperty({
+    enum: OrganizationRole,
+    example: OrganizationRole.SENIOR_PASTOR,
+    description: "The creator's role/title within the church",
+  })
   @IsEnum(OrganizationRole)
   organizationRole: OrganizationRole;
 }

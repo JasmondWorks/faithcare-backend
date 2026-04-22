@@ -24,6 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(payload: JwtPayload) {
     if (!payload.sub) throw new UnauthorizedException();
     return {

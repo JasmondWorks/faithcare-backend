@@ -6,7 +6,9 @@ import { CreateWorkforceApplicationDto } from '../dto/create-workforce-applicati
 
 @Injectable()
 export class WorkforceApplicationService extends BaseService<WorkforceApplicationDocument> {
-  constructor(private workforceApplicationRepository: WorkforceApplicationRepository) {
+  constructor(
+    private workforceApplicationRepository: WorkforceApplicationRepository,
+  ) {
     super(workforceApplicationRepository);
   }
 

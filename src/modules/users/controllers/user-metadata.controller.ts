@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UserMetaDataService } from '../services/user-metadata.service';
 import { CreateUserMetaDataDto } from '../dto/create-user-metadata.dto';
@@ -7,6 +17,7 @@ import { ConnectChurchDto } from '../dto/connect-church.dto';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
+import { RequestUser } from 'src/core/types/request-user.interface';
 
 @ApiTags('Users — Metadata')
 @ApiBearerAuth('access-token')
@@ -22,7 +33,10 @@ export class UserMetaDataController {
   }
 
   @Get('user/:userId')
-  @ApiOperation({ summary: 'Get metadata by user ID — includes populated church info (USER only)' })
+  @ApiOperation({
+    summary:
+      'Get metadata by user ID — includes populated church info (USER only)',
+  })
   findByUserId(@Param('userId') userId: string) {
     return this.userMetaDataService.findByUserId(userId);
   }
@@ -35,7 +49,10 @@ export class UserMetaDataController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update metadata fields (USER only)' })
-  update(@Param('id') id: string, @Body() updateUserMetaDataDto: UpdateUserMetaDataDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateUserMetaDataDto: UpdateUserMetaDataDto,
+  ) {
     return this.userMetaDataService.update(id, updateUserMetaDataDto);
   }
 
@@ -55,9 +72,9 @@ export class UserMetaDataController {
       'or `churchName` (a free-text string) if it was not. Only one field should be sent.',
   })
   connectToChurch(
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
     @Body() dto: ConnectChurchDto,
   ) {
-    return this.userMetaDataService.connectToChurch(user.sub, dto);
+    return this.userMetaDataService.connectToChurch(user.id, dto);
   }
 }

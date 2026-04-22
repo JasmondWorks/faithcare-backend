@@ -10,7 +10,9 @@ export class CreatePrimePrayerRequestDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'Please pray for my family and my business breakthrough.' })
+  @ApiProperty({
+    example: 'Please pray for my family and my business breakthrough.',
+  })
   @IsString()
   prayerRequest: string;
 }

@@ -15,7 +15,9 @@ export class DashboardController {
   }
 
   @Get('trends')
-  @ApiOperation({ summary: 'Weekly first-timer and follow-up trend data for charts' })
+  @ApiOperation({
+    summary: 'Weekly first-timer and follow-up trend data for charts',
+  })
   getTrends(
     @Query('organizationId') organizationId: string,
     @Query('weeks') weeks?: number,

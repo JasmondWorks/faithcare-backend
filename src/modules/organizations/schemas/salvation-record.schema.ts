@@ -25,7 +25,11 @@ export class SalvationRecord extends BaseSchema {
   @Prop({ default: null })
   notes?: string;
 
-  @Prop({ type: String, enum: SalvationStatus, default: SalvationStatus.PENDING })
+  @Prop({
+    type: String,
+    enum: SalvationStatus,
+    default: SalvationStatus.PENDING,
+  })
   status: SalvationStatus;
 }
 

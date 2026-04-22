@@ -12,6 +12,9 @@ export class OrganizationUserSettingsService extends BaseService<OrganizationUse
   }
 
   async findByUserAndOrg(userId: string, organizationId: string) {
-    return this.orgUserSettingsRepository.findByUserAndOrg(userId, organizationId);
+    return this.orgUserSettingsRepository.findByUserAndOrg(
+      userId,
+      organizationId,
+    );
   }
 }

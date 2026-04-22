@@ -30,13 +30,17 @@ export class FocusTimerController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all focus sessions with summary stats (USER only)' })
+  @ApiOperation({
+    summary: 'List all focus sessions with summary stats (USER only)',
+  })
   findByUser(@Query('userId') userId: string) {
     return this.focusTimerService.findByUser(userId);
   }
 
   @Get('active')
-  @ApiOperation({ summary: 'Get the currently active focus session (USER only)' })
+  @ApiOperation({
+    summary: 'Get the currently active focus session (USER only)',
+  })
   findActive(@Query('userId') userId: string) {
     return this.focusTimerService.findActiveByUser(userId);
   }
@@ -48,9 +52,13 @@ export class FocusTimerController {
   }
 
   @Patch(':id/complete')
-  @ApiOperation({ summary: 'Complete a session — returns scripture reward (USER only)' })
+  @ApiOperation({
+    summary: 'Complete a session — returns scripture reward (USER only)',
+  })
   complete(@Param('id') id: string) {
-    return this.focusTimerService.update(id, { status: FocusTimerStatus.COMPLETED });
+    return this.focusTimerService.update(id, {
+      status: FocusTimerStatus.COMPLETED,
+    });
   }
 
   @Patch(':id/pause')
@@ -64,7 +72,10 @@ export class FocusTimerController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a focus session (USER only)' })
-  update(@Param('id') id: string, @Body() updateFocusTimerDto: UpdateFocusTimerDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateFocusTimerDto: UpdateFocusTimerDto,
+  ) {
     return this.focusTimerService.update(id, updateFocusTimerDto);
   }
 

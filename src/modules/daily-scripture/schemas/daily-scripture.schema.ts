@@ -25,4 +25,5 @@ export class DailyScripture extends BaseSchema {
   isCompleted: boolean;
 }
 
-export const DailyScriptureSchema = SchemaFactory.createForClass(DailyScripture);
+export const DailyScriptureSchema =
+  SchemaFactory.createForClass(DailyScripture);

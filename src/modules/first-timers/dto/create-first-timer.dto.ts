@@ -34,12 +34,17 @@ export class CreateFirstTimerDto {
   @IsEnum(['first_time', 'second_time'])
   visitType: 'first_time' | 'second_time';
 
-  @ApiPropertyOptional({ description: 'Reference to the original first-timer (for second visits)' })
+  @ApiPropertyOptional({
+    description: 'Reference to the original first-timer (for second visits)',
+  })
   @IsOptional()
   @IsMongoId()
   firstTimerId?: string;
 
-  @ApiProperty({ example: '2025-07-06', description: 'ISO 8601 date: YYYY-MM-DD' })
+  @ApiProperty({
+    example: '2025-07-06',
+    description: 'ISO 8601 date: YYYY-MM-DD',
+  })
   @IsString()
   serviceDate: string;
 }

@@ -3,11 +3,27 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorFilter } from './core/errors/global-error.filter';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const cookieParser = require('cookie-parser');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ origin: '*' });
+  app.use(cookieParser());
+
+  app.enableCors({
+    origin: (
+      _origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Reflect any origin back — never returns '*', satisfying the CORS spec
+      // requirement that credentialed requests cannot use a wildcard origin.
+      callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new GlobalErrorFilter());
   app.setGlobalPrefix('api/v1', { exclude: ['/'] });
@@ -17,18 +33,36 @@ async function bootstrap() {
     .setTitle('FaithCare API')
     .setDescription(
       "REST API powering Prime Church's digital care and spiritual growth platform. " +
-      'ChurchCare handles first-timer follow-up; the Journal and Scripture modules keep ' +
-      'young professionals spiritually grounded.',
+        'ChurchCare handles first-timer follow-up; the Journal and Scripture modules keep ' +
+        'young professionals spiritually grounded.',
     )
     .setVersion('1.0')
-    .addTag('Authentication', 'Login (role determines access level), registration, email OTP verification, token refresh, org context switch')
-    .addTag('ChurchCare — First Timers', 'QR code registration, visitor records, follow-up status')
-    .addTag('ChurchCare — Follow-Up', 'Message templates, delivery logs, manual messaging triggers')
+    .addTag(
+      'Authentication',
+      'Login (role determines access level), registration, email OTP verification, token refresh, org context switch',
+    )
+    .addTag(
+      'ChurchCare — First Timers',
+      'QR code registration, visitor records, follow-up status',
+    )
+    .addTag(
+      'ChurchCare — Follow-Up',
+      'Message templates, delivery logs, manual messaging triggers',
+    )
     .addTag('ChurchCare — Dashboard', 'Aggregate metrics and weekly trend data')
     .addTag('Journal', 'Full CRUD for sermon and devotional journal entries')
-    .addTag('Scripture', 'One scripture per day with encouragement and reminder preferences')
-    .addTag('Focus Timer', '25-minute Pomodoro-style sessions with scripture reward on completion')
-    .addTag('Prime Church', 'Workforce applications, Trybe membership, and prayer requests for Prime Church')
+    .addTag(
+      'Scripture',
+      'One scripture per day with encouragement and reminder preferences',
+    )
+    .addTag(
+      'Focus Timer',
+      '25-minute Pomodoro-style sessions with scripture reward on completion',
+    )
+    .addTag(
+      'Prime Church',
+      'Workforce applications, Trybe membership, and prayer requests for Prime Church',
+    )
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'access-token',
@@ -57,6 +91,8 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`\nFaithCare API running on: http://localhost:${port}`);
   console.log(`API Docs (Swagger UI):    http://localhost:${port}/api/v1/docs`);
-  console.log(`OpenAPI JSON:             http://localhost:${port}/api/v1/docs-json\n`);
+  console.log(
+    `OpenAPI JSON:             http://localhost:${port}/api/v1/docs-json\n`,
+  );
 }
 bootstrap();

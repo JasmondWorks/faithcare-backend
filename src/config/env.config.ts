@@ -8,7 +8,8 @@ export default () => ({
 
   jwt: {
     accessSecret: process.env.JWT_SECRET || 'faithcare-dev-access-secret',
-    refreshSecret: process.env.REFRESH_TOKEN_SECRET || 'faithcare-dev-refresh-secret',
+    refreshSecret:
+      process.env.REFRESH_TOKEN_SECRET || 'faithcare-dev-refresh-secret',
     accessExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
     refreshExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '90d',
   },

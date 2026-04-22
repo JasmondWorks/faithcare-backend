@@ -1,4 +1,10 @@
-import { IsEmail, IsEnum, IsMongoId, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsMongoId,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateSecondTimerDto {
@@ -6,7 +12,10 @@ export class CreateSecondTimerDto {
   @IsMongoId()
   organizationId: string;
 
-  @ApiProperty({ example: '64a1f2c3e4b5d6e7f8a9b0c2', description: 'ID of the original first-timer record' })
+  @ApiProperty({
+    example: '64a1f2c3e4b5d6e7f8a9b0c2',
+    description: 'ID of the original first-timer record',
+  })
   @IsMongoId()
   firstTimerId: string;
 
@@ -27,7 +36,10 @@ export class CreateSecondTimerDto {
   @IsString()
   prayerRequest?: string;
 
-  @ApiPropertyOptional({ enum: ['FIRST_TIMER', 'SECOND_TIMER'], example: 'SECOND_TIMER' })
+  @ApiPropertyOptional({
+    enum: ['FIRST_TIMER', 'SECOND_TIMER'],
+    example: 'SECOND_TIMER',
+  })
   @IsOptional()
   @IsEnum(['FIRST_TIMER', 'SECOND_TIMER'])
   status?: 'FIRST_TIMER' | 'SECOND_TIMER';

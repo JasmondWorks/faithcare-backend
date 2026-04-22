@@ -35,7 +35,10 @@ export class MembershipController {
 
   @Post('invite')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Invite an existing user to the organization by email (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'Invite an existing user to the organization by email (ADMIN/SUPER_ADMIN only)',
+  })
   invite(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: any,
@@ -46,32 +49,49 @@ export class MembershipController {
 
   @Patch(':userId/role')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update a member role (ADMIN/SUPER_ADMIN only; only OWNER can assign OWNER)' })
+  @ApiOperation({
+    summary:
+      'Update a member role (ADMIN/SUPER_ADMIN only; only OWNER can assign OWNER)',
+  })
   updateRole(
     @Param('organizationId') organizationId: string,
     @Param('userId') targetUserId: string,
     @CurrentUser() user: any,
     @Body() dto: UpdateMemberRoleDto,
   ) {
-    return this.membershipService.updateMemberRole(organizationId, user.id, targetUserId, dto);
+    return this.membershipService.updateMemberRole(
+      organizationId,
+      user.id,
+      targetUserId,
+      dto,
+    );
   }
 
   @Delete(':userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Remove a member from the organization (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Remove a member from the organization (ADMIN/SUPER_ADMIN only)',
+  })
   removeMember(
     @Param('organizationId') organizationId: string,
     @Param('userId') targetUserId: string,
     @CurrentUser() user: any,
   ) {
-    return this.membershipService.removeMember(organizationId, user.id, targetUserId);
+    return this.membershipService.removeMember(
+      organizationId,
+      user.id,
+      targetUserId,
+    );
   }
 
   @Delete('leave')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Leave the organization (ADMIN/SUPER_ADMIN only; OWNER must transfer ownership first)' })
+  @ApiOperation({
+    summary:
+      'Leave the organization (ADMIN/SUPER_ADMIN only; OWNER must transfer ownership first)',
+  })
   leave(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: any,

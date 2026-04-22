@@ -11,11 +11,16 @@ export class CreatePrayerRequestDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'Believing God for complete healing from a prolonged illness.' })
+  @ApiProperty({
+    example: 'Believing God for complete healing from a prolonged illness.',
+  })
   @IsString()
   description: string;
 
-  @ApiPropertyOptional({ enum: PrayerRequestStatus, example: PrayerRequestStatus.PENDING })
+  @ApiPropertyOptional({
+    enum: PrayerRequestStatus,
+    example: PrayerRequestStatus.PENDING,
+  })
   @IsOptional()
   @IsEnum(PrayerRequestStatus)
   status?: PrayerRequestStatus;

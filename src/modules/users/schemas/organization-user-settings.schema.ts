@@ -19,7 +19,14 @@ export class OrganizationUserSettings extends BaseSchema {
   @Prop({ type: Types.ObjectId, ref: 'Organization', required: true })
   organizationId: Types.ObjectId;
 
-  @Prop({ type: Object, default: { newFirstTimers: true, newPrayerRequests: true, pendingFollowUpReminders: true } })
+  @Prop({
+    type: Object,
+    default: {
+      newFirstTimers: true,
+      newPrayerRequests: true,
+      pendingFollowUpReminders: true,
+    },
+  })
   notifications: NotificationSettings;
 
   @Prop({ type: String, enum: ['LIGHT', 'DARK'], default: 'LIGHT' })
