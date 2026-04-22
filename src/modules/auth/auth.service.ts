@@ -46,14 +46,14 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get<string>('jwt.accessSecret') as string,
-      expiresIn: this.config.get('jwt.accessExpiresIn') as any,
+      expiresIn: this.config.get('jwt.accessExpiresIn'),
     });
 
     const refreshToken = this.jwtService.sign(
       { sub: payload.sub },
       {
         secret: this.config.get<string>('jwt.refreshSecret') as string,
-        expiresIn: this.config.get('jwt.refreshExpiresIn') as any,
+        expiresIn: this.config.get('jwt.refreshExpiresIn'),
       },
     );
 
@@ -110,7 +110,8 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Registration successful. Check your email for the verification OTP.',
+      message:
+        'Registration successful. Check your email for the verification OTP.',
     };
   }
 
@@ -130,7 +131,10 @@ export class AuthService {
    *   SUPER_ADMIN → full platform access (manually assigned)
    */
   async login(dto: UserLoginDto) {
-    const user = await this.userModel.findOne({ email: dto.email, isDeleted: false });
+    const user = await this.userModel.findOne({
+      email: dto.email,
+      isDeleted: false,
+    });
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
@@ -166,11 +170,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
+    console.log('[refreshToken] payload.sub:', payload.sub, typeof payload.sub);
+
     const user = await this.userModel.findById(payload.sub);
+
+    console.log('[refreshToken] findById result:', user ? user._id : null);
+
     if (!user) throw new UnauthorizedException('User not found');
 
     const { accessToken } = this.signTokens(user);
-    return { success: true, data: { accessToken, tokenType: 'Bearer', expiresIn: 28800 } };
+    return {
+      success: true,
+      data: { accessToken, tokenType: 'Bearer', expiresIn: 28800 },
+    };
   }
 
   /**
@@ -184,7 +196,9 @@ export class AuthService {
       organizationId,
     );
     if (!membership) {
-      throw new UnauthorizedException('You are not an active member of this organization');
+      throw new UnauthorizedException(
+        'You are not an active member of this organization',
+      );
     }
 
     const user = await this.userModel.findById(userId);
@@ -200,7 +214,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get<string>('jwt.accessSecret') as string,
-      expiresIn: this.config.get('jwt.accessExpiresIn') as any,
+      expiresIn: this.config.get('jwt.accessExpiresIn'),
     });
 
     return {
@@ -219,7 +233,9 @@ export class AuthService {
   }
 
   async googleCallback(code: string, _state: string) {
-    return { message: 'Google OAuth — implementation requires Google credentials' };
+    return {
+      message: 'Google OAuth — implementation requires Google credentials',
+    };
   }
 
   // ── OTP verification ───────────────────────────────────────────
@@ -235,7 +251,8 @@ export class AuthService {
     if (!record) throw new BadRequestException('OTP is invalid or has expired');
 
     const isMatch = await bcrypt.compare(dto.otp, record.hashedOtp);
-    if (!isMatch) throw new BadRequestException('OTP is invalid or has expired');
+    if (!isMatch)
+      throw new BadRequestException('OTP is invalid or has expired');
 
     await this.otpModel.findByIdAndUpdate(record._id, { used: true });
 

@@ -12,8 +12,13 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Request, Response, CookieOptions } from 'express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
 import { AuthService } from './auth.service';
@@ -34,10 +39,12 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? '')
 // Cookie is set on the backend as a convenience for pure browser/React clients.
 // Next.js apps should read the refreshToken from the response body and set their
 // own first-party HttpOnly cookie via a server route handler.
-const COOKIE_OPTIONS = {
+const isProduction = process.env.NODE_ENV === 'production';
+
+const COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'none' as const,
+  secure: isProduction, // 👈 false in dev
+  sameSite: isProduction ? 'none' : 'lax',
   maxAge: 30 * 24 * 60 * 60 * 1000,
 };
 
@@ -49,7 +56,10 @@ export class AuthController {
   @Public()
   @Post('register/user')
   @ApiOperation({ summary: 'Register a new user account (role: USER)' })
-  @ApiResponse({ status: 201, description: 'Account created — verify your email to log in' })
+  @ApiResponse({
+    status: 201,
+    description: 'Account created — verify your email to log in',
+  })
   @ApiResponse({ status: 409, description: 'Email already registered' })
   userRegister(@Body() userRegisterDto: UserRegisterDto) {
     return this.authService.userRegister(userRegisterDto);
@@ -58,7 +68,10 @@ export class AuthController {
   @Public()
   @Post('register/admin')
   @ApiOperation({ summary: 'Register a new admin account (role: ADMIN)' })
-  @ApiResponse({ status: 201, description: 'Account created — verify your email to log in' })
+  @ApiResponse({
+    status: 201,
+    description: 'Account created — verify your email to log in',
+  })
   @ApiResponse({ status: 409, description: 'Email already registered' })
   adminRegister(@Body() userRegisterDto: UserRegisterDto) {
     return this.authService.adminRegister(userRegisterDto);
@@ -74,8 +87,14 @@ export class AuthController {
       '(SameSite=None) for pure React clients. Next.js apps should read refreshToken from ' +
       'the body and store it via a server route handler for a same-site cookie.',
   })
-  @ApiResponse({ status: 200, description: 'Login successful — refreshToken in body and cookie' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful — refreshToken in body and cookie',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials or email not verified',
+  })
   async login(
     @Body() loginDto: UserLoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -87,21 +106,29 @@ export class AuthController {
 
   @Public()
   @Get('google')
-  @ApiOperation({ summary: 'Initiate Google OAuth 2.0 flow — redirects to Google consent screen' })
+  @ApiOperation({
+    summary:
+      'Initiate Google OAuth 2.0 flow — redirects to Google consent screen',
+  })
   googleAuth() {
     return this.authService.googleAuth();
   }
 
   @Public()
   @Get('google/callback')
-  @ApiOperation({ summary: 'Google redirects here — exchanges code for FaithCare JWT' })
-  @ApiResponse({ status: 200, description: 'JWT returned; is_new_user: true on first sign-in' })
-  @ApiResponse({ status: 400, description: 'OAUTH_STATE_MISMATCH or expired code' })
+  @ApiOperation({
+    summary: 'Google redirects here — exchanges code for FaithCare JWT',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'JWT returned; is_new_user: true on first sign-in',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'OAUTH_STATE_MISMATCH or expired code',
+  })
   @ApiResponse({ status: 403, description: 'OAUTH_EMAIL_NOT_VERIFIED' })
-  googleCallback(
-    @Query('code') code: string,
-    @Query('state') state: string,
-  ) {
+  googleCallback(@Query('code') code: string, @Query('state') state: string) {
     return this.authService.googleCallback(code, state);
   }
 
@@ -120,13 +147,18 @@ export class AuthController {
   @ApiResponse({ status: 403, description: 'Request origin not allowed' })
   refreshToken(@Req() req: Request, @Body() body: RefreshTokenDto) {
     // CSRF mitigation: reject requests from unrecognised origins.
-    const origin = req.headers['origin'] as string | undefined;
-    if (origin && ALLOWED_ORIGINS.length > 0 && !ALLOWED_ORIGINS.includes(origin)) {
+    const origin = req.headers['origin'];
+    if (
+      origin &&
+      ALLOWED_ORIGINS.length > 0 &&
+      !ALLOWED_ORIGINS.includes(origin)
+    ) {
       throw new ForbiddenException('Request origin not allowed');
     }
 
     // Body takes precedence (Next.js proxy pattern); fall back to cookie.
-    const token: string | undefined = body?.refreshToken ?? req.cookies?.[REFRESH_COOKIE];
+    const token: string | undefined =
+      body?.refreshToken ?? req.cookies?.[REFRESH_COOKIE];
     if (!token) throw new UnauthorizedException('No refresh token');
     return this.authService.refreshToken(token);
   }
@@ -134,8 +166,13 @@ export class AuthController {
   @Public()
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Verify email with OTP code sent during registration' })
-  @ApiResponse({ status: 200, description: 'Email verified — refreshToken in body and cookie' })
+  @ApiOperation({
+    summary: 'Verify email with OTP code sent during registration',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Email verified — refreshToken in body and cookie',
+  })
   @ApiResponse({ status: 400, description: 'OTP is invalid or has expired' })
   async verifyEmailOtp(
     @Body() verifyOtpDto: VerifyOtpDto,
@@ -149,7 +186,9 @@ export class AuthController {
   @Public()
   @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Resend OTP for email verification or password reset' })
+  @ApiOperation({
+    summary: 'Resend OTP for email verification or password reset',
+  })
   @ApiResponse({ status: 200, description: 'OTP sent' })
   @ApiResponse({ status: 404, description: 'User not found' })
   resendOtp(@Body() resendOtpDto: ResendOtpDto) {
@@ -166,7 +205,10 @@ export class AuthController {
       'Use this token for all subsequent requests scoped to that organization.',
   })
   @ApiResponse({ status: 200, description: 'Org-scoped token issued' })
-  @ApiResponse({ status: 401, description: 'Not an active member of this organization' })
+  @ApiResponse({
+    status: 401,
+    description: 'Not an active member of this organization',
+  })
   switchOrganization(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: any,
