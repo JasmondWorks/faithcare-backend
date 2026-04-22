@@ -11,8 +11,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorFilter } from './core/errors/global-error.filter';
 import { AppModule } from './app.module';
 import type { IncomingMessage, ServerResponse } from 'http';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const cookieParser = require('cookie-parser');
+import { Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void;
 
@@ -87,7 +87,7 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, config);
 
   // Serve raw OpenAPI JSON
-  adapter.get('/api/v1/openapi.json', (_req: any, res: any) =>
+  adapter.get('/api/v1/openapi.json', (_req: Request, res: Response) =>
     res.json(document),
   );
 

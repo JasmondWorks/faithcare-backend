@@ -17,6 +17,7 @@ import { UpdateOrganizationDto } from '../dto/update-organization.dto';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
+import { RequestUser } from 'src/core/types/request-user.interface';
 
 @ApiTags('Organization')
 @ApiBearerAuth('access-token')
@@ -35,7 +36,7 @@ export class OrganizationController {
     summary:
       'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)',
   })
-  create(@Body() dto: CreateOrganizationDto, @CurrentUser() user: any) {
+  create(@Body() dto: CreateOrganizationDto, @CurrentUser() user: RequestUser) {
     return this.organizationService.createWithOwner(dto, user.id);
   }
 
@@ -83,7 +84,7 @@ export class OrganizationController {
   @ApiOperation({
     summary: 'List all organizations the authenticated user belongs to',
   })
-  mine(@CurrentUser() user: any) {
+  mine(@CurrentUser() user: RequestUser) {
     return this.membershipService.getUserOrganizations(user.id);
   }
 

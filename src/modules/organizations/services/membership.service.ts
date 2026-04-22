@@ -60,7 +60,7 @@ export class MembershipService {
     if (!targetUser)
       throw new NotFoundException('No user found with that email');
 
-    const targetId = (targetUser._id as any).toString();
+    const targetId = String(targetUser._id);
     const existing = await this.membershipRepo.findByUserAndOrg(
       targetId,
       organizationId,
@@ -74,7 +74,7 @@ export class MembershipService {
 
     // Re-activate if previously suspended
     if (existing) {
-      return this.membershipRepo.update((existing._id as any).toString(), {
+      return this.membershipRepo.update(String(existing._id), {
         role: dto.role ?? MembershipRole.MEMBER,
         status: MembershipStatus.ACTIVE,
         invitedBy: invitedByUserId,
@@ -120,12 +120,9 @@ export class MembershipService {
     if (!targetMembership)
       throw new NotFoundException('Member not found in this organization');
 
-    return this.membershipRepo.update(
-      (targetMembership._id as any).toString(),
-      {
-        role: dto.role,
-      },
-    );
+    return this.membershipRepo.update(String(targetMembership._id), {
+      role: dto.role,
+    });
   }
 
   /** Remove a member — OWNERs cannot be removed; only ADMIN+ can remove others */
@@ -155,7 +152,7 @@ export class MembershipService {
       throw new ForbiddenException('Cannot remove the organization owner');
     }
 
-    return this.membershipRepo.delete((targetMembership._id as any).toString());
+    return this.membershipRepo.delete(String(targetMembership._id));
   }
 
   /** Leave an organization — OWNER must transfer ownership first */
@@ -171,7 +168,7 @@ export class MembershipService {
         'Transfer ownership to another member before leaving',
       );
     }
-    return this.membershipRepo.delete((membership._id as any).toString());
+    return this.membershipRepo.delete(String(membership._id));
   }
 
   /** Used by AuthService and TenantGuard to verify access */

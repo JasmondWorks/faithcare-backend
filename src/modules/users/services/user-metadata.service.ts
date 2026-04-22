@@ -43,10 +43,7 @@ export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
       ? { organization: dto.organization, churchName: null }
       : { organization: null, churchName: dto.churchName };
 
-    await this.userMetaDataRepository.update(
-      (metadata._id as any).toString(),
-      update,
-    );
+    await this.userMetaDataRepository.update(String(metadata._id), update);
     return this.userMetaDataRepository.findByUserId(userId);
   }
 }

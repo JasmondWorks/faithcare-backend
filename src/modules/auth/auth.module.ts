@@ -21,7 +21,7 @@ import { OrganizationsModule } from '../organizations/organizations.module';
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('jwt.accessSecret') as string,
         signOptions: {
-          expiresIn: config.get<string>('jwt.accessExpiresIn') as any,
+          expiresIn: config.get<string>('jwt.accessExpiresIn') as string,
         },
       }),
     }),

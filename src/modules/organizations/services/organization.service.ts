@@ -50,7 +50,7 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
       createdBy: createdByUserId,
     });
 
-    const orgId = (org._id as any).toString();
+    const orgId = String(org._id);
 
     const firstTimerQrCode = await this.generateFirstTimerQrCode(
       orgId,

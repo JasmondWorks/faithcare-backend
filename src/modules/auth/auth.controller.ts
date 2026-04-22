@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
@@ -157,8 +158,8 @@ export class AuthController {
     }
 
     // Body takes precedence (Next.js proxy pattern); fall back to cookie.
-    const token: string | undefined =
-      body?.refreshToken ?? req.cookies?.[REFRESH_COOKIE];
+    const cookieToken = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+    const token = body?.refreshToken ?? cookieToken;
     if (!token) throw new UnauthorizedException('No refresh token');
     return this.authService.refreshToken(token);
   }
@@ -211,7 +212,7 @@ export class AuthController {
   })
   switchOrganization(
     @Param('organizationId') organizationId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.authService.switchOrganization(user.id, organizationId);
   }

@@ -39,7 +39,7 @@ export class AuthService {
    */
   private signTokens(user: UserDocument) {
     const payload = {
-      sub: (user._id as any).toString(),
+      sub: String(user._id),
       email: user.email,
       role: user.role,
     };
@@ -62,12 +62,12 @@ export class AuthService {
 
   private userView(user: UserDocument) {
     return {
-      id: (user._id as any).toString(),
+      id: String(user._id),
       name: user.name,
       email: user.email,
       role: user.role,
       isEmailVerified: user.isEmailVerified,
-      createdAt: (user as any).createdAt,
+      createdAt: user.createdAt,
     };
   }
 
