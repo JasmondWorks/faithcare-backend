@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BaseRepository } from 'src/core/repositories/base.repository';
-import { PrayerRequest, PrayerRequestDocument } from '../schemas/prayer-request.schema';
+import {
+  PrayerRequest,
+  PrayerRequestDocument,
+} from '../schemas/prayer-request.schema';
 
 @Injectable()
 export class PrayerRequestRepository extends BaseRepository<PrayerRequestDocument> {

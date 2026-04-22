@@ -4,12 +4,18 @@ import { UsersController } from './controllers/user.controller';
 import { UsersService } from './services/user.service';
 import { UsersRepository } from './repositories/user.repository';
 import { User, UserSchema } from './schemas/user.schema';
-import { UserMetaData, UserMetaDataSchema } from './schemas/user-metadata.schema';
+import {
+  UserMetaData,
+  UserMetaDataSchema,
+} from './schemas/user-metadata.schema';
 import {
   OrganizationUserSettings,
   OrganizationUserSettingsSchema,
 } from './schemas/organization-user-settings.schema';
-import { Organization, OrganizationSchema } from '../organizations/schemas/organization.schema';
+import {
+  Organization,
+  OrganizationSchema,
+} from '../organizations/schemas/organization.schema';
 import { UserMetaDataRepository } from './repositories/user-metadata.repository';
 import { OrganizationUserSettingsRepository } from './repositories/organization-user-settings.repository';
 import { UserMetaDataService } from './services/user-metadata.service';
@@ -22,11 +28,18 @@ import { OrganizationUserSettingsController } from './controllers/organization-u
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: UserMetaData.name, schema: UserMetaDataSchema },
-      { name: OrganizationUserSettings.name, schema: OrganizationUserSettingsSchema },
+      {
+        name: OrganizationUserSettings.name,
+        schema: OrganizationUserSettingsSchema,
+      },
       { name: Organization.name, schema: OrganizationSchema },
     ]),
   ],
-  controllers: [UsersController, UserMetaDataController, OrganizationUserSettingsController],
+  controllers: [
+    UsersController,
+    UserMetaDataController,
+    OrganizationUserSettingsController,
+  ],
   providers: [
     UsersService,
     UsersRepository,

@@ -12,7 +12,9 @@ export class UsersService extends BaseService<UserDocument> {
   async getMe(userId: string) {
     const user = await this.findById(userId);
     if (!user) throw new NotFoundException('User not found');
-    const { password: _, ...profile } = (user as any).toObject();
+    const raw = user.toObject() as Record<string, unknown>;
+    const { password: _pw, ...profile } = raw;
+    void _pw;
     return { success: true, data: profile };
   }
 
@@ -20,7 +22,7 @@ export class UsersService extends BaseService<UserDocument> {
     return this.usersRepository.findByEmail(email);
   }
 
-  async findByUsername(username: string) {
+  findByUsername(username: string) {
     return username;
   }
 }

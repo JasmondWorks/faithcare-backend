@@ -12,12 +12,19 @@ export class CreateFocusTimerDto {
   @Min(1)
   duration: number;
 
-  @ApiPropertyOptional({ enum: FocusTimerStatus, example: FocusTimerStatus.NOT_STARTED })
+  @ApiPropertyOptional({
+    enum: FocusTimerStatus,
+    example: FocusTimerStatus.NOT_STARTED,
+  })
   @IsOptional()
   @IsEnum(FocusTimerStatus)
   status?: FocusTimerStatus;
 
-  @ApiPropertyOptional({ example: 0, description: 'Minutes elapsed so far', minimum: 0 })
+  @ApiPropertyOptional({
+    example: 0,
+    description: 'Minutes elapsed so far',
+    minimum: 0,
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)

@@ -1,9 +1,11 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { Request } from 'express';
+import { RequestUser } from '../types/request-user.interface';
 
 /** Injects the authenticated user from the JWT payload. */
 export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    return request.user;
+  (_data: unknown, ctx: ExecutionContext): RequestUser => {
+    const request = ctx.switchToHttp().getRequest<Request>();
+    return request.user as RequestUser;
   },
 );

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SecondTimerService } from '../services/second-timer.service';
 import { CreateSecondTimerDto } from '../dto/create-second-timer.dto';
 import { UpdateSecondTimerDto } from '../dto/update-second-timer.dto';

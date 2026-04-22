@@ -223,11 +223,11 @@ export class AuthService {
     };
   }
 
-  async googleAuth() {
+  googleAuth() {
     return { message: 'Redirecting to Google OAuth' };
   }
 
-  async googleCallback(code: string, _state: string) {
+  googleCallback(_code: string, _state: string) {
     return {
       message: 'Google OAuth — implementation requires Google credentials',
     };

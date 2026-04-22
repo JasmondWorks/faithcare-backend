@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import * as QRCode from 'qrcode';
 import { BaseService } from 'src/core/services/base.service';
 import { OrganizationDocument } from '../schemas/organization.schema';
@@ -37,7 +41,8 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
   async createWithOwner(dto: CreateOrganizationDto, createdByUserId: string) {
     const slug = dto.slug ?? this.toSlug(dto.name);
     const slugTaken = await this.organizationRepository.findOne({ slug });
-    if (slugTaken) throw new ConflictException(`Slug "${slug}" is already taken`);
+    if (slugTaken)
+      throw new ConflictException(`Slug "${slug}" is already taken`);
 
     const org = await this.organizationRepository.create({
       ...dto,
@@ -47,11 +52,19 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
 
     const orgId = (org._id as any).toString();
 
-    const firstTimerQrCode = await this.generateFirstTimerQrCode(orgId, slug, dto.name);
+    const firstTimerQrCode = await this.generateFirstTimerQrCode(
+      orgId,
+      slug,
+      dto.name,
+    );
     await this.organizationRepository.update(orgId, { firstTimerQrCode });
     org.firstTimerQrCode = firstTimerQrCode;
 
-    await this.membershipService.createOwnership(createdByUserId, orgId, dto.organizationRole);
+    await this.membershipService.createOwnership(
+      createdByUserId,
+      orgId,
+      dto.organizationRole,
+    );
 
     return org;
   }
@@ -71,7 +84,10 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
   }
 
   async findBySlug(slug: string) {
-    const org = await this.organizationRepository.findOne({ slug, isDeleted: false });
+    const org = await this.organizationRepository.findOne({
+      slug,
+      isDeleted: false,
+    });
     if (!org) throw new NotFoundException('Organization not found');
     return org;
   }

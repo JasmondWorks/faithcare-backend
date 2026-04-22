@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { FollowUpTemplateService } from '../services/follow-up-template.service';
 import { MessageLogService } from '../services/message-log.service';
@@ -44,7 +36,9 @@ export class FollowUpController {
   }
 
   @Post('send')
-  @ApiOperation({ summary: 'Manually trigger a follow-up message to a specific visitor' })
+  @ApiOperation({
+    summary: 'Manually trigger a follow-up message to a specific visitor',
+  })
   sendMessage(@Body() sendMessageDto: SendMessageDto) {
     return this.messageLogService.create({
       ...sendMessageDto,

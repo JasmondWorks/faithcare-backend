@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CommunityService } from '../services/community.service';
 import { CreateCommunityDto } from '../dto/create-community.dto';
@@ -16,7 +24,10 @@ export class CommunityController {
   // ── USER accessible ─────────────────────────────────────────────
 
   @Get('user')
-  @ApiOperation({ summary: "List communities the authenticated user belongs to within this organization" })
+  @ApiOperation({
+    summary:
+      'List communities the authenticated user belongs to within this organization',
+  })
   findByUser(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: any,
@@ -34,7 +45,10 @@ export class CommunityController {
 
   @Post()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Create a new community within the organization (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'Create a new community within the organization (ADMIN/SUPER_ADMIN only)',
+  })
   create(
     @Param('organizationId') organizationId: string,
     @Body() createDto: CreateCommunityDto,
@@ -44,14 +58,20 @@ export class CommunityController {
 
   @Get()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'List all communities in the organization (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'List all communities in the organization (ADMIN/SUPER_ADMIN only)',
+  })
   findByOrganization(@Param('organizationId') organizationId: string) {
     return this.communityService.findByOrganization(organizationId);
   }
 
   @Get(':id/recent-members')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Get a community with its 5 most recent members (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'Get a community with its 5 most recent members (ADMIN/SUPER_ADMIN only)',
+  })
   findWithRecentMembers(@Param('id') id: string) {
     return this.communityService.findWithRecentMembers(id);
   }

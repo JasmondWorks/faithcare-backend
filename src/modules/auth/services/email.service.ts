@@ -19,9 +19,15 @@ export class EmailService {
     });
   }
 
-  async sendOtp(email: string, otp: string, type: 'email_verification' | 'password_reset') {
+  async sendOtp(
+    email: string,
+    otp: string,
+    type: 'email_verification' | 'password_reset',
+  ) {
     const isVerification = type === 'email_verification';
-    const subject = isVerification ? 'Verify your FaithCare account' : 'Reset your FaithCare password';
+    const subject = isVerification
+      ? 'Verify your FaithCare account'
+      : 'Reset your FaithCare password';
     const heading = isVerification ? 'Email Verification' : 'Password Reset';
     const body = isVerification
       ? 'Thank you for joining FaithCare! Use the code below to verify your email address.'

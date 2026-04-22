@@ -1,10 +1,19 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Organization, OrganizationSchema } from './schemas/organization.schema';
+import {
+  Organization,
+  OrganizationSchema,
+} from './schemas/organization.schema';
 import { Membership, MembershipSchema } from './schemas/membership.schema';
-import { SalvationRecord, SalvationRecordSchema } from './schemas/salvation-record.schema';
+import {
+  SalvationRecord,
+  SalvationRecordSchema,
+} from './schemas/salvation-record.schema';
 import { Community, CommunitySchema } from './schemas/community.schema';
-import { PrayerRequest, PrayerRequestSchema } from './schemas/prayer-request.schema';
+import {
+  PrayerRequest,
+  PrayerRequestSchema,
+} from './schemas/prayer-request.schema';
 import { FollowUp, FollowUpSchema } from './schemas/follow-up.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { OrganizationRepository } from './repositories/organization.repository';

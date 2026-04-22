@@ -7,7 +7,12 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UsersService } from '../services/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -26,7 +31,8 @@ export class UsersController {
   @Get('me')
   @ApiOperation({
     summary: 'Get current user profile',
-    description: 'Returns the full profile of the authenticated user derived from the Bearer token. Password is never included in the response.',
+    description:
+      'Returns the full profile of the authenticated user derived from the Bearer token. Password is never included in the response.',
   })
   @ApiResponse({ status: 200, description: 'User profile returned' })
   @ApiResponse({ status: 401, description: 'Missing or invalid access token' })

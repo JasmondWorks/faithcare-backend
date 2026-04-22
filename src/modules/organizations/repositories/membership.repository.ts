@@ -16,7 +16,11 @@ export class MembershipRepository extends BaseRepository<MembershipDocument> {
 
   findByOrganization(organizationId: string) {
     return this.model
-      .find({ organization: organizationId, status: MembershipStatus.ACTIVE, isDeleted: false })
+      .find({
+        organization: organizationId,
+        status: MembershipStatus.ACTIVE,
+        isDeleted: false,
+      })
       .populate('userId', 'name email role createdAt')
       .exec();
   }
@@ -36,7 +40,12 @@ export class MembershipRepository extends BaseRepository<MembershipDocument> {
 
   findActiveMembership(userId: string, organizationId: string) {
     return this.model
-      .findOne({ userId, organization: organizationId, status: MembershipStatus.ACTIVE, isDeleted: false })
+      .findOne({
+        userId,
+        organization: organizationId,
+        status: MembershipStatus.ACTIVE,
+        isDeleted: false,
+      })
       .exec();
   }
 }

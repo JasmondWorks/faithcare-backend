@@ -13,7 +13,8 @@ export class ConnectChurchDto {
 
   @ApiPropertyOptional({
     example: 'Grace Chapel Lagos',
-    description: 'Free-text church name. Provide when the church is not found in the system.',
+    description:
+      'Free-text church name. Provide when the church is not found in the system.',
   })
   @IsOptional()
   @IsString()

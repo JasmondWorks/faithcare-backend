@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PrayerRequestService } from '../services/prayer-request.service';
 import { CreatePrayerRequestDto } from '../dto/create-prayer-request.dto';
@@ -28,21 +36,28 @@ export class PrayerRequestController {
 
   @Get()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'List all prayer requests for the organization (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'List all prayer requests for the organization (ADMIN/SUPER_ADMIN only)',
+  })
   findByOrganization(@Param('organizationId') organizationId: string) {
     return this.prayerRequestService.findByOrganization(organizationId);
   }
 
   @Get(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Get a single prayer request (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Get a single prayer request (ADMIN/SUPER_ADMIN only)',
+  })
   findOne(@Param('id') id: string) {
     return this.prayerRequestService.findById(id);
   }
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update a prayer request status (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Update a prayer request status (ADMIN/SUPER_ADMIN only)',
+  })
   update(@Param('id') id: string, @Body() updateDto: UpdatePrayerRequestDto) {
     return this.prayerRequestService.update(id, updateDto);
   }

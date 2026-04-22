@@ -10,7 +10,9 @@ export class CreateCommunityDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'A community for young adults aged 18–35 to connect and grow.' })
+  @ApiProperty({
+    example: 'A community for young adults aged 18–35 to connect and grow.',
+  })
   @IsString()
   description: string;
 
@@ -23,7 +25,9 @@ export class CreateCommunityDto {
   @IsMongoId({ each: true })
   members?: string[];
 
-  @ApiPropertyOptional({ example: 'https://cdn.faithcare.app/communities/yaf.png' })
+  @ApiPropertyOptional({
+    example: 'https://cdn.faithcare.app/communities/yaf.png',
+  })
   @IsOptional()
   @IsString()
   profileImage?: string;

@@ -1,5 +1,7 @@
-export abstract class BaseService<_T> {
-  constructor(protected repository: any) {}
+import { BaseRepository } from '../repositories/base.repository';
+
+export abstract class BaseService<T> {
+  constructor(protected repository: BaseRepository<T>) {}
 
   create(data: any) {
     return this.repository.create(data);

@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { FirstTimer, FirstTimerDocument } from 'src/modules/first-timers/schemas/first-timer.schema';
+import {
+  FirstTimer,
+  FirstTimerDocument,
+} from 'src/modules/first-timers/schemas/first-timer.schema';
 import { MessageLog, MessageLogDocument } from '../schemas/message-log.schema';
 
 @Injectable()
@@ -28,14 +31,22 @@ export class DashboardService {
       messagesSentToday,
     ] = await Promise.all([
       this.firstTimerModel.countDocuments({ organizationId, isDeleted: false }),
-      this.firstTimerModel.countDocuments({ organizationId, status: 'PENDING', isDeleted: false }),
+      this.firstTimerModel.countDocuments({
+        organizationId,
+        status: 'PENDING',
+        isDeleted: false,
+      }),
       this.firstTimerModel.countDocuments({
         organizationId,
         status: 'CONTACTED',
         updatedAt: { $gte: startOfWeek },
         isDeleted: false,
       }),
-      this.firstTimerModel.countDocuments({ organizationId, visitType: 'second_time', isDeleted: false }),
+      this.firstTimerModel.countDocuments({
+        organizationId,
+        visitType: 'second_time',
+        isDeleted: false,
+      }),
       this.messageLogModel.countDocuments({
         organizationId,
         status: { $in: ['sent', 'delivered'] },
@@ -44,9 +55,10 @@ export class DashboardService {
     ]);
 
     const contacted = totalFirstTimers - pendingFollowUps;
-    const followUpRate = totalFirstTimers > 0
-      ? Math.round((contacted / totalFirstTimers) * 1000) / 10
-      : 0;
+    const followUpRate =
+      totalFirstTimers > 0
+        ? Math.round((contacted / totalFirstTimers) * 1000) / 10
+        : 0;
 
     return {
       totalFirstTimers,

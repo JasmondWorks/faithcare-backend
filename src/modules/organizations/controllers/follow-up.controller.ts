@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { FollowUpService } from '../services/follow-up.service';
 import { CreateFollowUpDto } from '../dto/create-follow-up.dto';
@@ -23,19 +31,27 @@ export class FollowUpController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List follow-up tasks for the organization (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'List follow-up tasks for the organization (ADMIN/SUPER_ADMIN only)',
+  })
   findByOrganization(@Param('organizationId') organizationId: string) {
     return this.followUpService.findByOrganization(organizationId);
   }
 
   @Get('member/:newMemberId')
-  @ApiOperation({ summary: 'List follow-ups for a specific first-timer (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary:
+      'List follow-ups for a specific first-timer (ADMIN/SUPER_ADMIN only)',
+  })
   findByMember(@Param('newMemberId') newMemberId: string) {
     return this.followUpService.findByMember(newMemberId);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a follow-up task by ID (ADMIN/SUPER_ADMIN only)' })
+  @ApiOperation({
+    summary: 'Get a follow-up task by ID (ADMIN/SUPER_ADMIN only)',
+  })
   findOne(@Param('id') id: string) {
     return this.followUpService.findById(id);
   }

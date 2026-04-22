@@ -11,7 +11,11 @@ export class Otp {
   @Prop({ required: true })
   hashedOtp: string;
 
-  @Prop({ type: String, enum: ['email_verification', 'password_reset'], required: true })
+  @Prop({
+    type: String,
+    enum: ['email_verification', 'password_reset'],
+    required: true,
+  })
   type: 'email_verification' | 'password_reset';
 
   @Prop({ required: true })

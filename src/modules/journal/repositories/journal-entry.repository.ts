@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BaseRepository } from 'src/core/repositories/base.repository';
-import { JournalEntry, JournalEntryDocument } from '../schemas/journal-entry.schema';
+import {
+  JournalEntry,
+  JournalEntryDocument,
+} from '../schemas/journal-entry.schema';
 
 @Injectable()
 export class JournalEntryRepository extends BaseRepository<JournalEntryDocument> {
@@ -14,6 +17,9 @@ export class JournalEntryRepository extends BaseRepository<JournalEntryDocument>
   }
 
   async findByUser(userId: string) {
-    return this.model.find({ userId, isDeleted: false }).sort({ createdAt: -1 }).exec();
+    return this.model
+      .find({ userId, isDeleted: false })
+      .sort({ createdAt: -1 })
+      .exec();
   }
 }

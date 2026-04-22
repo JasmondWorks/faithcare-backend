@@ -13,7 +13,11 @@ export class FocusTimer extends BaseSchema {
   @Prop({ required: true })
   duration: number;
 
-  @Prop({ type: String, enum: FocusTimerStatus, default: FocusTimerStatus.NOT_STARTED })
+  @Prop({
+    type: String,
+    enum: FocusTimerStatus,
+    default: FocusTimerStatus.NOT_STARTED,
+  })
   status: FocusTimerStatus;
 
   @Prop({ default: 0 })

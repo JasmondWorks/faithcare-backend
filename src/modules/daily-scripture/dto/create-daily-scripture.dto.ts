@@ -1,4 +1,10 @@
-import { IsBoolean, IsDateString, IsMongoId, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsMongoId,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateDailyScriptureDto {
@@ -14,12 +20,16 @@ export class CreateDailyScriptureDto {
   @IsString()
   scriptureReference: string;
 
-  @ApiProperty({ example: '2026-03-20', description: 'ISO 8601 date: YYYY-MM-DD' })
+  @ApiProperty({
+    example: '2026-03-20',
+    description: 'ISO 8601 date: YYYY-MM-DD',
+  })
   @IsDateString()
   date: string;
 
   @ApiProperty({
-    example: 'Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
+    example:
+      'Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
   })
   @IsString()
   content: string;

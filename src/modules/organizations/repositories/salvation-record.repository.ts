@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BaseRepository } from 'src/core/repositories/base.repository';
-import { SalvationRecord, SalvationRecordDocument } from '../schemas/salvation-record.schema';
+import {
+  SalvationRecord,
+  SalvationRecordDocument,
+} from '../schemas/salvation-record.schema';
 
 @Injectable()
 export class SalvationRecordRepository extends BaseRepository<SalvationRecordDocument> {

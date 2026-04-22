@@ -21,16 +21,24 @@ export class CreateSalvationRecordDto {
   @IsString()
   email?: string;
 
-  @ApiProperty({ example: '2026-03-16', description: 'ISO 8601 date: YYYY-MM-DD' })
+  @ApiProperty({
+    example: '2026-03-16',
+    description: 'ISO 8601 date: YYYY-MM-DD',
+  })
   @IsString()
   decisionDate: string;
 
-  @ApiPropertyOptional({ example: 'Gave his life to Christ after the Sunday service altar call.' })
+  @ApiPropertyOptional({
+    example: 'Gave his life to Christ after the Sunday service altar call.',
+  })
   @IsOptional()
   @IsString()
   notes?: string;
 
-  @ApiPropertyOptional({ enum: SalvationStatus, example: SalvationStatus.PENDING })
+  @ApiPropertyOptional({
+    enum: SalvationStatus,
+    example: SalvationStatus.PENDING,
+  })
   @IsOptional()
   @IsEnum(SalvationStatus)
   status?: SalvationStatus;

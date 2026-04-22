@@ -1,4 +1,12 @@
-import { IsArray, IsBoolean, IsMongoId, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsMongoId,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -44,7 +52,8 @@ export class CreateUserMetaDataDto {
 
   @ApiPropertyOptional({
     example: '64a1f2c3e4b5d6e7f8a9b0c1',
-    description: 'ID of an existing organization. Provide this when the user selects a church from search results.',
+    description:
+      'ID of an existing organization. Provide this when the user selects a church from search results.',
   })
   @IsOptional()
   @IsMongoId()
@@ -52,7 +61,8 @@ export class CreateUserMetaDataDto {
 
   @ApiPropertyOptional({
     example: 'Grace Chapel Abuja',
-    description: 'Free-text church name. Provide this when the church is not found in the system.',
+    description:
+      'Free-text church name. Provide this when the church is not found in the system.',
   })
   @IsOptional()
   @IsString()

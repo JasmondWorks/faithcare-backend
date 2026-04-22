@@ -16,7 +16,8 @@ export class CreateJournalEntryDto {
   scriptureReference?: string;
 
   @ApiProperty({
-    example: 'Today\'s sermon reminded me to trust God\'s plan even when I can\'t see the full picture. I was challenged to let go of anxiety about my career and lean into His promises.',
+    example:
+      "Today's sermon reminded me to trust God's plan even when I can't see the full picture. I was challenged to let go of anxiety about my career and lean into His promises.",
   })
   @IsString()
   content: string;

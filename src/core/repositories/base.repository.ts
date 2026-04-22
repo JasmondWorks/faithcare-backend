@@ -13,7 +13,7 @@ export abstract class BaseRepository<T> {
       .find({
         ...filter,
         isDeleted: false,
-      } as any)
+      })
       .exec();
   }
 
@@ -22,7 +22,7 @@ export abstract class BaseRepository<T> {
       .findOne({
         ...filter,
         isDeleted: false,
-      } as any)
+      })
       .exec();
   }
 
@@ -87,7 +87,7 @@ export abstract class BaseRepository<T> {
 
     const [data, total] = await Promise.all([
       this.model
-        .find({ ...filter, isDeleted: false } as any)
+        .find({ ...filter, isDeleted: false })
         .skip(skip)
         .limit(limit)
         .exec(),
@@ -95,7 +95,7 @@ export abstract class BaseRepository<T> {
       this.model.countDocuments({
         ...filter,
         isDeleted: false,
-      } as any),
+      }),
     ]);
 
     return {

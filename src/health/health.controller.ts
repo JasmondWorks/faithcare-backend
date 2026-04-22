@@ -20,8 +20,6 @@ export class HealthController {
   @HealthCheck()
   @ApiOperation({ summary: 'Check API and database health' })
   check() {
-    return this.health.check([
-      () => this.mongoose.pingCheck('mongodb'),
-    ]);
+    return this.health.check([() => this.mongoose.pingCheck('mongodb')]);
   }
 }

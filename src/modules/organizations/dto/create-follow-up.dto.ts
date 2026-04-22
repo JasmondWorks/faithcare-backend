@@ -1,4 +1,11 @@
-import { IsArray, IsDateString, IsEnum, IsMongoId, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsEnum,
+  IsMongoId,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFollowUpDto {
@@ -14,7 +21,11 @@ export class CreateFollowUpDto {
   @IsString()
   name: string;
 
-  @ApiPropertyOptional({ example: ['FIRST_TIMER'], enum: ['FIRST_TIMER'], isArray: true })
+  @ApiPropertyOptional({
+    example: ['FIRST_TIMER'],
+    enum: ['FIRST_TIMER'],
+    isArray: true,
+  })
   @IsOptional()
   @IsArray()
   @IsEnum(['FIRST_TIMER'], { each: true })
@@ -25,11 +36,17 @@ export class CreateFollowUpDto {
   @IsEnum(['HIGH'])
   priority?: string;
 
-  @ApiProperty({ example: 'First-time visitor who expressed interest in joining a cell group.' })
+  @ApiProperty({
+    example:
+      'First-time visitor who expressed interest in joining a cell group.',
+  })
   @IsString()
   description: string;
 
-  @ApiProperty({ example: '2026-04-01', description: 'ISO 8601 date: YYYY-MM-DD' })
+  @ApiProperty({
+    example: '2026-04-01',
+    description: 'ISO 8601 date: YYYY-MM-DD',
+  })
   @IsDateString()
   dueDate: string;
 }
