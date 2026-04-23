@@ -197,6 +197,26 @@ export class AuthController {
   }
 
   @ApiBearerAuth('access-token')
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Log out — clears the refresh token cookie',
+    description:
+      'Clears the HttpOnly refresh_token cookie. The access token remains valid ' +
+      'until it expires naturally (stateless JWT), so clients should discard it ' +
+      'locally on logout.',
+  })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(REFRESH_COOKIE, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+    });
+    return { success: true, message: 'Logged out successfully' };
+  }
+
+  @ApiBearerAuth('access-token')
   @Post('switch-organization/:organizationId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
