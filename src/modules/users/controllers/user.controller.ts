@@ -19,6 +19,7 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
 
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
@@ -36,7 +37,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 200, description: 'User profile returned' })
   @ApiResponse({ status: 401, description: 'Missing or invalid access token' })
-  async getMe(@CurrentUser() user: any) {
+  async getMe(@CurrentUser() user: RequestUser) {
     return this.usersService.getMe(user.id);
   }
 

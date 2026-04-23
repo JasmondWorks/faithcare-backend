@@ -43,4 +43,14 @@ export default tseslint.config(
       "prettier/prettier": ["error", { endOfLine: "auto" }],
     },
   },
+  {
+    // Mongoose's FilterQuery<T> spread produces "error typed" values that
+    // TypeScript cannot resolve for abstract generics — must be the last
+    // block so it overrides the global rules above for this file only.
+    files: ['src/core/repositories/base.repository.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+    },
+  },
 );
