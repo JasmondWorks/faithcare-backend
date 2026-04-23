@@ -1,30 +1,38 @@
 export default () => ({
-  nodeEnv: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT ?? '3000', 10),
+  nodeEnv: process.env.NODE_ENV ?? 'development',
+
+  port: parseInt(requireEnv('PORT'), 10),
 
   mongodb: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/faithcare',
+    uri: requireEnv('MONGODB_URI'),
   },
 
   jwt: {
-    accessSecret: process.env.JWT_SECRET || 'faithcare-dev-access-secret',
-    refreshSecret:
-      process.env.REFRESH_TOKEN_SECRET || 'faithcare-dev-refresh-secret',
-    accessExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
-    refreshExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '90d',
+    accessSecret: requireEnv('ACCESS_SECRET'),
+    refreshSecret: requireEnv('REFRESH_SECRET'),
+    accessExpiresIn: requireEnv('JWT_ACCESS_TOKEN_EXPIRES_IN'),
+    refreshExpiresIn: requireEnv('JWT_REFRESH_TOKEN_EXPIRES_IN'),
   },
 
   email: {
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT ?? '587', 10),
-    user: process.env.EMAIL_USER || '',
-    pass: process.env.EMAIL_PASS || '',
-    from: process.env.EMAIL_FROM || 'FaithCare <noreply@faithcare.app>',
+    host: requireEnv('EMAIL_HOST'),
+    port: parseInt(requireEnv('EMAIL_PORT'), 10),
+    user: requireEnv('EMAIL_USER'),
+    pass: requireEnv('EMAIL_PASS'),
+    from: requireEnv('EMAIL_FROM'),
   },
 
   sms: {
-    provider: process.env.SMS_PROVIDER || '',
-    apiKey: process.env.SMS_API_KEY || '',
-    from: process.env.SMS_FROM || '',
+    provider: process.env.SMS_PROVIDER ?? '',
+    apiKey: process.env.SMS_API_KEY ?? '',
+    from: process.env.SMS_FROM ?? '',
   },
 });
+
+const requireEnv = (key: string): string => {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+};

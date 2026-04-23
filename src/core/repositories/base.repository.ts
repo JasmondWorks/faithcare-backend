@@ -1,4 +1,4 @@
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { Model, UpdateQuery } from 'mongoose';
 
 export abstract class BaseRepository<T> {
   constructor(protected readonly model: Model<T>) {}
@@ -8,19 +8,16 @@ export abstract class BaseRepository<T> {
     return (await doc.save()) as unknown as T;
   }
 
-  async findAll(filter: FilterQuery<T> = {}): Promise<T[]> {
-    const query = { ...filter, isDeleted: false } as FilterQuery<T>;
-    return this.model.find(query).exec();
+  async findAll(filter: any = {}): Promise<T[]> {
+    return this.model.find({ ...filter, isDeleted: false }).exec();
   }
 
-  async findOne(filter: FilterQuery<T>): Promise<T | null> {
-    const query = { ...filter, isDeleted: false } as FilterQuery<T>;
-    return this.model.findOne(query).exec();
+  async findOne(filter: any): Promise<T | null> {
+    return this.model.findOne({ ...filter, isDeleted: false }).exec();
   }
 
   async findById(id: string): Promise<T | null> {
-    const query = { _id: id, isDeleted: false } as FilterQuery<T>;
-    return this.model.findOne(query).exec();
+    return this.model.findOne({ _id: id, isDeleted: false } as any).exec();
   }
 
   async update(id: string, update: UpdateQuery<T>): Promise<T | null> {
@@ -52,7 +49,7 @@ export abstract class BaseRepository<T> {
   }
 
   async paginate(
-    filter: FilterQuery<T> = {},
+    filter: any = {},
     options: { page: number; limit: number },
   ): Promise<{
     data: T[];
@@ -66,11 +63,14 @@ export abstract class BaseRepository<T> {
     const page = options.page || 1;
     const limit = options.limit || 10;
     const skip = (page - 1) * limit;
-    const query = { ...filter, isDeleted: false } as FilterQuery<T>;
 
     const [data, total] = await Promise.all([
-      this.model.find(query).skip(skip).limit(limit).exec(),
-      this.model.countDocuments(query),
+      this.model
+        .find({ ...filter, isDeleted: false })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.model.countDocuments({ ...filter, isDeleted: false }),
     ]);
 
     return {

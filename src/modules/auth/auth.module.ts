@@ -20,9 +20,6 @@ import { OrganizationsModule } from '../organizations/organizations.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('jwt.accessSecret') as string,
-        signOptions: {
-          expiresIn: config.get<string>('jwt.accessExpiresIn') as string,
-        },
       }),
     }),
     MongooseModule.forFeature([
