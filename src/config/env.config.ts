@@ -27,6 +27,10 @@ export default () => ({
     apiKey: process.env.SMS_API_KEY ?? '',
     from: process.env.SMS_FROM ?? '',
   },
+
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+  },
 });
 
 const requireEnv = (key: string): string => {
