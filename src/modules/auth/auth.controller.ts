@@ -1,6 +1,5 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Param,
@@ -10,11 +9,8 @@ import {
   HttpStatus,
   UnauthorizedException,
   ForbiddenException,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Request, Response, CookieOptions } from 'express';
-import { GoogleProfile } from 'src/core/strategies/google.strategy';
 import {
   ApiTags,
   ApiOperation,
@@ -34,20 +30,16 @@ import { ResendOtpDto } from './dto/resend-otp.dto';
 
 const REFRESH_COOKIE = 'refresh_token';
 
-// Origins allowed to call the refresh endpoint (CSRF mitigation).
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? '')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
 
-// Cookie is set on the backend as a convenience for pure browser/React clients.
-// Next.js apps should read the refreshToken from the response body and set their
-// own first-party HttpOnly cookie via a server route handler.
 const isProduction = process.env.NODE_ENV === 'production';
 
 const COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
-  secure: isProduction, // 👈 false in dev
+  secure: isProduction,
   sameSite: isProduction ? 'none' : 'lax',
   maxAge: 30 * 24 * 60 * 60 * 1000,
 };
@@ -88,8 +80,8 @@ export class AuthController {
     summary: 'Log in with email and password',
     description:
       'Returns both tokens. The backend also sets the refresh token as an HttpOnly cookie ' +
-      '(SameSite=None) for pure React clients. Next.js apps should read refreshToken from ' +
-      'the body and store it via a server route handler for a same-site cookie.',
+      'for pure React clients. Next.js apps should read refreshToken from the body and store ' +
+      'it via a server route handler for a same-site cookie.',
   })
   @ApiResponse({
     status: 200,
@@ -112,17 +104,19 @@ export class AuthController {
   @Post('google/signin')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Sign in with Google',
+    summary: 'Sign in with Google (client-side flow)',
     description:
-      'Verifies the Google ID token obtained from the frontend (Google Identity Services SDK). ' +
-      'Creates a new USER account on first sign-in. Returns the same JWT payload as regular login. ' +
-      'Body: { provider: "google", idToken: "<id_token from Google>" }',
+      'The frontend uses the Google Identity Services SDK to get an id_token, then POSTs it here. ' +
+      'Creates a new USER account on first sign-in. Returns the same JWT payload as regular login.',
   })
   @ApiResponse({
     status: 200,
     description: 'Sign-in successful — isNewUser: true on first sign-in',
   })
-  @ApiResponse({ status: 400, description: 'Google sign-in not configured' })
+  @ApiResponse({
+    status: 400,
+    description: 'Google sign-in not configured on this server',
+  })
   @ApiResponse({
     status: 401,
     description: 'Invalid or expired Google ID token',
@@ -134,50 +128,6 @@ export class AuthController {
     const result = await this.authService.googleSignIn(dto.idToken);
     res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
     return result;
-  }
-
-  // ── Server-side Google OAuth ────────────────────────────────────
-
-  @Public()
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  @ApiOperation({
-    summary: 'Initiate server-side Google OAuth flow',
-    description:
-      "Redirects the browser to Google's consent screen. " +
-      'Use this when the backend drives the OAuth flow (e.g. a traditional web app). ' +
-      'For SPAs / Next.js apps, use POST /auth/google/signin instead.',
-  })
-  googleOAuthInit() {
-    // Passport intercepts this and issues the redirect — body never runs
-  }
-
-  @Public()
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  @ApiOperation({
-    summary: 'Google OAuth callback (server-side flow)',
-    description:
-      'Google redirects here after the user consents. Passport exchanges the code, ' +
-      'then this handler issues JWTs and redirects the browser to FRONTEND_URL/auth/callback.',
-  })
-  @ApiResponse({
-    status: 302,
-    description: 'Redirects to frontend with accessToken in query param',
-  })
-  async googleOAuthCallback(@Req() req: Request, @Res() res: Response) {
-    const profile = req.user as GoogleProfile;
-    const { accessToken, refreshToken, isNewUser } =
-      await this.authService.handleGoogleUser(profile);
-
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
-
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-    const redirectUrl = new URL('/auth/callback', frontendUrl);
-    redirectUrl.searchParams.set('accessToken', accessToken);
-    if (isNewUser) redirectUrl.searchParams.set('isNewUser', 'true');
-
-    return res.redirect(redirectUrl.toString());
   }
 
   @Public()
@@ -194,7 +144,6 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Missing or invalid refresh token' })
   @ApiResponse({ status: 403, description: 'Request origin not allowed' })
   refreshToken(@Req() req: Request, @Body() body: RefreshTokenDto) {
-    // CSRF mitigation: reject requests from unrecognised origins.
     const origin = req.headers['origin'];
     if (
       origin &&
@@ -204,7 +153,6 @@ export class AuthController {
       throw new ForbiddenException('Request origin not allowed');
     }
 
-    // Body takes precedence (Next.js proxy pattern); fall back to cookie.
     const cookieToken = req.cookies?.[REFRESH_COOKIE] as string | undefined;
     const token = body?.refreshToken ?? cookieToken;
     if (!token) throw new UnauthorizedException('No refresh token');
@@ -250,8 +198,7 @@ export class AuthController {
     summary: 'Log out — clears the refresh token cookie',
     description:
       'Clears the HttpOnly refresh_token cookie. The access token remains valid ' +
-      'until it expires naturally (stateless JWT), so clients should discard it ' +
-      'locally on logout.',
+      'until it expires naturally (stateless JWT), so clients should discard it locally on logout.',
   })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
   logout(@Res({ passthrough: true }) res: Response) {
