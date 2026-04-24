@@ -10,6 +10,7 @@ import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
 import { EmailService } from './services/email.service';
@@ -39,7 +40,7 @@ export class AuthService {
    */
   private signTokens(user: UserDocument) {
     const payload = {
-      sub: (user._id as any).toString(),
+      sub: String(user._id),
       email: user.email,
       role: user.role,
     };
@@ -62,12 +63,12 @@ export class AuthService {
 
   private userView(user: UserDocument) {
     return {
-      id: (user._id as any).toString(),
+      id: String(user._id),
       name: user.name,
       email: user.email,
       role: user.role,
       isEmailVerified: user.isEmailVerified,
-      createdAt: (user as any).createdAt,
+      createdAt: user.createdAt,
     };
   }
 
@@ -219,6 +220,73 @@ export class AuthService {
         tokenType: 'Bearer',
         activeOrganizationId: organizationId,
         activeOrganizationRole: membership.role,
+      },
+    };
+  }
+
+  async googleSignIn(idToken: string) {
+    const clientId = this.config.get<string>('google.clientId');
+    if (!clientId) {
+      throw new BadRequestException(
+        'Google sign-in is not configured on this server',
+      );
+    }
+
+    const client = new OAuth2Client(clientId);
+    let googlePayload: {
+      email?: string;
+      name?: string;
+      email_verified?: boolean;
+    };
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: clientId,
+      });
+      googlePayload = ticket.getPayload() ?? {};
+    } catch {
+      throw new UnauthorizedException('Invalid or expired Google ID token');
+    }
+
+    const { email, name, email_verified } = googlePayload;
+    if (!email)
+      throw new UnauthorizedException('Google token is missing email claim');
+    if (!email_verified)
+      throw new UnauthorizedException('Google email is not verified');
+
+    let isNewUser = false;
+    let user = await this.userModel.findOne({ email, isDeleted: false });
+
+    if (!user) {
+      isNewUser = true;
+      const unusablePassword = await bcrypt.hash(
+        Math.random().toString(36) + Date.now(),
+        12,
+      );
+      user = await this.userModel.create({
+        name: name ?? email.split('@')[0],
+        email,
+        password: unusablePassword,
+        role: Role.USER,
+        isEmailVerified: true,
+      });
+    } else if (!user.isEmailVerified) {
+      await this.userModel.findByIdAndUpdate(user._id, {
+        isEmailVerified: true,
+      });
+      user.isEmailVerified = true;
+    }
+
+    const { accessToken, refreshToken } = this.signTokens(user);
+    return {
+      success: true,
+      data: {
+        accessToken,
+        refreshToken,
+        tokenType: 'Bearer',
+        expiresIn: 28800,
+        isNewUser,
+        user: this.userView(user),
       },
     };
   }

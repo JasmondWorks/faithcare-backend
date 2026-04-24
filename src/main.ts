@@ -3,8 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorFilter } from './core/errors/global-error.filter';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const cookieParser = require('cookie-parser');
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -95,4 +94,4 @@ async function bootstrap() {
     `OpenAPI JSON:             http://localhost:${port}/api/v1/docs-json\n`,
   );
 }
-bootstrap();
+void bootstrap();

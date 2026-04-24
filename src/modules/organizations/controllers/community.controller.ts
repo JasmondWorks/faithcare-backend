@@ -14,6 +14,7 @@ import { UpdateCommunityDto } from '../dto/update-community.dto';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
+import { RequestUser } from 'src/core/types/request-user.interface';
 
 @ApiTags('Organization — Communities')
 @ApiBearerAuth('access-token')
@@ -30,9 +31,9 @@ export class CommunityController {
   })
   findByUser(
     @Param('organizationId') organizationId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
-    return this.communityService.findByUserInOrg(user.sub, organizationId);
+    return this.communityService.findByUserInOrg(user.id, organizationId);
   }
 
   @Get(':id')

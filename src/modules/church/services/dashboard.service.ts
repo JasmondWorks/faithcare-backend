@@ -71,7 +71,12 @@ export class DashboardService {
   }
 
   async getWeeklyTrends(organizationId: string, weeks = 8) {
-    const trends: any[] = [];
+    const trends: {
+      weekStart: string;
+      newFirstTimers: number;
+      contacted: number;
+      pending: number;
+    }[] = [];
     const now = new Date();
 
     for (let i = weeks - 1; i >= 0; i--) {

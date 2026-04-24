@@ -1,9 +1,7 @@
 import {
   Controller,
   Post,
-  Get,
   Body,
-  Query,
   Param,
   Req,
   Res,
@@ -21,10 +19,12 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { GoogleSignInDto } from './dto/google-signin.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 
@@ -105,31 +105,31 @@ export class AuthController {
   }
 
   @Public()
-  @Get('google')
+  @Post('google/signin')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary:
-      'Initiate Google OAuth 2.0 flow — redirects to Google consent screen',
-  })
-  googleAuth() {
-    return this.authService.googleAuth();
-  }
-
-  @Public()
-  @Get('google/callback')
-  @ApiOperation({
-    summary: 'Google redirects here — exchanges code for FaithCare JWT',
+    summary: 'Sign in with Google',
+    description:
+      'Verifies the Google ID token obtained from the frontend (Google Identity Services SDK). ' +
+      'Creates a new USER account on first sign-in. Returns the same JWT payload as regular login. ' +
+      'Body: { provider: "google", idToken: "<id_token from Google>" }',
   })
   @ApiResponse({
     status: 200,
-    description: 'JWT returned; is_new_user: true on first sign-in',
+    description: 'Sign-in successful — isNewUser: true on first sign-in',
   })
+  @ApiResponse({ status: 400, description: 'Google sign-in not configured' })
   @ApiResponse({
-    status: 400,
-    description: 'OAUTH_STATE_MISMATCH or expired code',
+    status: 401,
+    description: 'Invalid or expired Google ID token',
   })
-  @ApiResponse({ status: 403, description: 'OAUTH_EMAIL_NOT_VERIFIED' })
-  googleCallback(@Query('code') code: string, @Query('state') state: string) {
-    return this.authService.googleCallback(code, state);
+  async googleSignIn(
+    @Body() dto: GoogleSignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.googleSignIn(dto.idToken);
+    res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
+    return result;
   }
 
   @Public()
@@ -157,8 +157,8 @@ export class AuthController {
     }
 
     // Body takes precedence (Next.js proxy pattern); fall back to cookie.
-    const token: string | undefined =
-      body?.refreshToken ?? req.cookies?.[REFRESH_COOKIE];
+    const cookieToken = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+    const token = body?.refreshToken ?? cookieToken;
     if (!token) throw new UnauthorizedException('No refresh token');
     return this.authService.refreshToken(token);
   }
@@ -196,6 +196,26 @@ export class AuthController {
   }
 
   @ApiBearerAuth('access-token')
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Log out — clears the refresh token cookie',
+    description:
+      'Clears the HttpOnly refresh_token cookie. The access token remains valid ' +
+      'until it expires naturally (stateless JWT), so clients should discard it ' +
+      'locally on logout.',
+  })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie(REFRESH_COOKIE, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+    });
+    return { success: true, message: 'Logged out successfully' };
+  }
+
+  @ApiBearerAuth('access-token')
   @Post('switch-organization/:organizationId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -211,7 +231,7 @@ export class AuthController {
   })
   switchOrganization(
     @Param('organizationId') organizationId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.authService.switchOrganization(user.id, organizationId);
   }

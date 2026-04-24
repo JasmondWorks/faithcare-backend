@@ -1,3 +1,4 @@
+import { UpdateQuery } from 'mongoose';
 import { BaseRepository } from '../repositories/base.repository';
 
 export abstract class BaseService<T> {
@@ -19,7 +20,7 @@ export abstract class BaseService<T> {
     return this.repository.findById(id);
   }
 
-  update(id: string, data: any) {
+  update(id: string, data: UpdateQuery<T>) {
     return this.repository.update(id, data);
   }
 
