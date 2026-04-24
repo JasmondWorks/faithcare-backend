@@ -291,16 +291,6 @@ export class AuthService {
     };
   }
 
-  googleAuth() {
-    return { message: 'Redirecting to Google OAuth' };
-  }
-
-  googleCallback(_code: string, _state: string) {
-    return {
-      message: 'Google OAuth — implementation requires Google credentials',
-    };
-  }
-
   // ── OTP verification ───────────────────────────────────────────
 
   async verifyEmailOtp(dto: VerifyOtpDto) {
