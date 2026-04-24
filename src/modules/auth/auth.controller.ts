@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   Param,
@@ -9,8 +10,11 @@ import {
   HttpStatus,
   UnauthorizedException,
   ForbiddenException,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { Request, Response, CookieOptions } from 'express';
+import { GoogleProfile } from 'src/core/strategies/google.strategy';
 import {
   ApiTags,
   ApiOperation,
@@ -130,6 +134,50 @@ export class AuthController {
     const result = await this.authService.googleSignIn(dto.idToken);
     res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
     return result;
+  }
+
+  // ── Server-side Google OAuth ────────────────────────────────────
+
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({
+    summary: 'Initiate server-side Google OAuth flow',
+    description:
+      "Redirects the browser to Google's consent screen. " +
+      'Use this when the backend drives the OAuth flow (e.g. a traditional web app). ' +
+      'For SPAs / Next.js apps, use POST /auth/google/signin instead.',
+  })
+  googleOAuthInit() {
+    // Passport intercepts this and issues the redirect — body never runs
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({
+    summary: 'Google OAuth callback (server-side flow)',
+    description:
+      'Google redirects here after the user consents. Passport exchanges the code, ' +
+      'then this handler issues JWTs and redirects the browser to FRONTEND_URL/auth/callback.',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirects to frontend with accessToken in query param',
+  })
+  async googleOAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const profile = req.user as GoogleProfile;
+    const { accessToken, refreshToken, isNewUser } =
+      await this.authService.handleGoogleUser(profile);
+
+    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const redirectUrl = new URL('/auth/callback', frontendUrl);
+    redirectUrl.searchParams.set('accessToken', accessToken);
+    if (isNewUser) redirectUrl.searchParams.set('isNewUser', 'true');
+
+    return res.redirect(redirectUrl.toString());
   }
 
   @Public()

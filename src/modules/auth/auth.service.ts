@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
+import { GoogleProfile } from 'src/core/strategies/google.strategy';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
 import { EmailService } from './services/email.service';
@@ -224,6 +225,39 @@ export class AuthService {
     };
   }
 
+  // ── Google auth (shared) ───────────────────────────────────────
+
+  private async findOrCreateGoogleUser(
+    email: string,
+    name: string,
+  ): Promise<{ user: UserDocument; isNewUser: boolean }> {
+    let isNewUser = false;
+    let user = await this.userModel.findOne({ email, isDeleted: false });
+
+    if (!user) {
+      isNewUser = true;
+      const unusablePassword = await bcrypt.hash(
+        Math.random().toString(36) + Date.now(),
+        12,
+      );
+      user = await this.userModel.create({
+        name: name || email.split('@')[0],
+        email,
+        password: unusablePassword,
+        role: Role.USER,
+        isEmailVerified: true,
+      });
+    } else if (!user.isEmailVerified) {
+      await this.userModel.findByIdAndUpdate(user._id, {
+        isEmailVerified: true,
+      });
+      user.isEmailVerified = true;
+    }
+
+    return { user, isNewUser };
+  }
+
+  /** Client-side flow: frontend sends the Google id_token directly. */
   async googleSignIn(idToken: string) {
     const clientId = this.config.get<string>('google.clientId');
     if (!clientId) {
@@ -254,29 +288,10 @@ export class AuthService {
     if (!email_verified)
       throw new UnauthorizedException('Google email is not verified');
 
-    let isNewUser = false;
-    let user = await this.userModel.findOne({ email, isDeleted: false });
-
-    if (!user) {
-      isNewUser = true;
-      const unusablePassword = await bcrypt.hash(
-        Math.random().toString(36) + Date.now(),
-        12,
-      );
-      user = await this.userModel.create({
-        name: name ?? email.split('@')[0],
-        email,
-        password: unusablePassword,
-        role: Role.USER,
-        isEmailVerified: true,
-      });
-    } else if (!user.isEmailVerified) {
-      await this.userModel.findByIdAndUpdate(user._id, {
-        isEmailVerified: true,
-      });
-      user.isEmailVerified = true;
-    }
-
+    const { user, isNewUser } = await this.findOrCreateGoogleUser(
+      email,
+      name ?? '',
+    );
     const { accessToken, refreshToken } = this.signTokens(user);
     return {
       success: true,
@@ -289,6 +304,21 @@ export class AuthService {
         user: this.userView(user),
       },
     };
+  }
+
+  /** Server-side flow: Passport already verified the code — profile comes from GoogleStrategy. */
+  async handleGoogleUser(profile: GoogleProfile) {
+    if (!profile.email)
+      throw new UnauthorizedException('Google did not return an email');
+    if (!profile.emailVerified)
+      throw new UnauthorizedException('Google email is not verified');
+
+    const { user, isNewUser } = await this.findOrCreateGoogleUser(
+      profile.email,
+      profile.name,
+    );
+    const { accessToken, refreshToken } = this.signTokens(user);
+    return { accessToken, refreshToken, isNewUser };
   }
 
   // ── OTP verification ───────────────────────────────────────────

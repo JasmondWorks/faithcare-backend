@@ -10,6 +10,7 @@ import { User, UserSchema } from '../users/schemas/user.schema';
 import { Otp, OtpSchema } from './schemas/otp.schema';
 import { JwtStrategy } from 'src/core/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
+import { GoogleStrategy } from 'src/core/strategies/google.strategy';
 import { OrganizationsModule } from '../organizations/organizations.module';
 
 @Module({
@@ -29,7 +30,13 @@ import { OrganizationsModule } from '../organizations/organizations.module';
     OrganizationsModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService, JwtStrategy, JwtRefreshStrategy],
+  providers: [
+    AuthService,
+    EmailService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleStrategy,
+  ],
   exports: [JwtModule, PassportModule],
 })
 export class AuthModule {}
