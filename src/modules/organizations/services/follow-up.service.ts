@@ -28,17 +28,17 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
     return this.followUpRepository.findByOrganization(organizationId);
   }
 
-  findByMember(newMemberId: string) {
-    return this.followUpRepository.findByMember(newMemberId);
+  findByTarget(targetId: string) {
+    return this.followUpRepository.findByMember(targetId);
   }
 
   /**
-   * Send a WhatsApp or SMS message to the visitor linked to this follow-up.
-   * On success:
+   * Send a WhatsApp or SMS for this follow-up.
+   * On delivery success:
    *   - FollowUp.status → CONTACTED, deliveryStatus → sent
-   *   - FirstTimer.status → CONTACTED
+   *   - If targetType === 'first_timer': FirstTimer.status → CONTACTED
    * On failure:
-   *   - FollowUp.deliveryStatus → failed (status stays PENDING so it's retryable)
+   *   - deliveryStatus → failed, status stays PENDING (retryable)
    */
   async sendMessage(
     id: string,
@@ -49,33 +49,37 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
 
     const delivered = await this.messaging.sendToVisitor({
       channel: dto.channel,
-      to: dto.phoneNumber,
+      to: (dto.contactPhone ??
+        dto.phoneNumber ??
+        (record as any).contactPhone) as string,
       template: dto.message,
       vars: {},
       organizationId: String((record as any).organizationId),
-      recipientName: (record as any).name,
+      recipientName: (record as any).contactName,
     });
 
     const updated = await this.followUpRepository.update(id, {
-      phoneNumber: dto.phoneNumber,
       channel: dto.channel,
       sentMessage: dto.message,
       deliveryStatus: delivered ? 'sent' : 'failed',
       status: delivered ? 'CONTACTED' : 'PENDING',
     });
 
-    if (delivered) {
-      await this.firstTimerModel.findByIdAndUpdate(
-        (record as any).newMemberId,
-        { status: 'CONTACTED' },
-      );
+    if (
+      delivered &&
+      (record as any).targetType === 'first_timer' &&
+      (record as any).targetId
+    ) {
+      await this.firstTimerModel.findByIdAndUpdate((record as any).targetId, {
+        status: 'CONTACTED',
+      });
     }
 
     const orgId = String((record as any).organizationId ?? '');
     if (orgId) {
       this.notifications.notifyMessageSent(orgId, {
         followUpId: id,
-        recipientName: (record as any).name,
+        recipientName: (record as any).contactName,
         channel: dto.channel,
         delivered,
       });
@@ -85,10 +89,9 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
   }
 
   /**
-   * Log the visitor's inbound reply.
-   * On call:
-   *   - FollowUp.status → REPLIED
-   *   - FirstTimer.status → FOLLOWED_UP
+   * Log the contact's inbound reply.
+   * FollowUp.status → REPLIED
+   * If targetType === 'first_timer': FirstTimer.status → FOLLOWED_UP
    */
   async logReply(
     id: string,
@@ -102,9 +105,14 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
       status: 'REPLIED',
     });
 
-    await this.firstTimerModel.findByIdAndUpdate((record as any).newMemberId, {
-      status: 'FOLLOWED_UP',
-    });
+    if (
+      (record as any).targetType === 'first_timer' &&
+      (record as any).targetId
+    ) {
+      await this.firstTimerModel.findByIdAndUpdate((record as any).targetId, {
+        status: 'FOLLOWED_UP',
+      });
+    }
 
     return updated;
   }

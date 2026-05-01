@@ -68,6 +68,10 @@ async function bootstrap(): Promise<void> {
       'Create and manage church organizations; QR code regeneration',
     )
     .addTag(
+      'Organization — Members',
+      'Regular church members (beyond first/second visit); targets for follow-up tasks',
+    )
+    .addTag(
       'Organization — Communities',
       'Community groups within an org; admin-managed member lists',
     )

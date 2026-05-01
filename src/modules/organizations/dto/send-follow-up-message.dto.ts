@@ -1,13 +1,21 @@
-import { IsEnum, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SendFollowUpMessageDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '+2348012345678',
-    description: 'Recipient phone number with country code',
+    description:
+      'Override phone number. If omitted, uses the phone stored on the follow-up record.',
   })
+  @IsOptional()
   @IsString()
-  phoneNumber: string;
+  contactPhone?: string;
+
+  /** Alias kept for backwards compatibility with the field name on the record. */
+  @ApiPropertyOptional({ example: '+2348012345678' })
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
 
   @ApiProperty({ enum: ['whatsapp', 'sms'], example: 'whatsapp' })
   @IsEnum(['whatsapp', 'sms'])

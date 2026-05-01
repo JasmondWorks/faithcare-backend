@@ -9,13 +9,30 @@ export class FollowUp extends BaseSchema {
   @Prop({ type: Types.ObjectId, ref: 'Organization', required: true })
   organizationId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'FirstTimer', required: true })
-  newMemberId: Types.ObjectId;
+  /**
+   * Who this follow-up is for.
+   * 'first_timer' → links to a FirstTimer record (new visitor)
+   * 'member'      → links to a Member record (regular attendee)
+   * null          → ad-hoc follow-up with no linked record
+   */
+  @Prop({ type: String, enum: ['first_timer', 'member'], default: null })
+  targetType: string | null;
+
+  @Prop({ type: Types.ObjectId, default: null })
+  targetId: Types.ObjectId | null;
+
+  /** Denormalized — always populated regardless of targetType. */
+  @Prop({ required: true })
+  contactName: string;
 
   @Prop({ required: true })
-  name: string;
+  contactPhone: string;
 
-  @Prop({ type: [String], enum: ['FIRST_TIMER'], default: ['FIRST_TIMER'] })
+  @Prop({
+    type: [String],
+    enum: ['FIRST_TIMER', 'MEMBER', 'OTHER'],
+    default: [],
+  })
   tags: string[];
 
   @Prop({ type: String, enum: ['HIGH', 'MEDIUM', 'LOW'], default: 'HIGH' })
@@ -30,7 +47,7 @@ export class FollowUp extends BaseSchema {
   /**
    * PENDING   — task created, no message sent yet
    * CONTACTED — message sent and delivered
-   * REPLIED   — visitor replied (receivedMessage logged)
+   * REPLIED   — visitor/member replied (receivedMessage logged)
    * CLOSED    — manually resolved without a reply
    */
   @Prop({
@@ -42,9 +59,6 @@ export class FollowUp extends BaseSchema {
 
   // ── Messaging fields ────────────────────────────────────────────
 
-  @Prop({ default: null })
-  phoneNumber: string | null;
-
   @Prop({
     type: String,
     enum: ['whatsapp', 'sms', 'email', 'in_person'],
@@ -52,11 +66,9 @@ export class FollowUp extends BaseSchema {
   })
   channel: string;
 
-  /** Outbound message sent to the visitor. */
   @Prop({ default: null })
   sentMessage: string | null;
 
-  /** Visitor's inbound reply, logged via PATCH /:id/reply. */
   @Prop({ default: null })
   receivedMessage: string | null;
 
@@ -69,5 +81,5 @@ export class FollowUp extends BaseSchema {
 }
 
 export const FollowUpSchema = SchemaFactory.createForClass(FollowUp);
-FollowUpSchema.index({ organizationId: 1, dueDate: 1 });
-FollowUpSchema.index({ newMemberId: 1 });
+FollowUpSchema.index({ organizationId: 1, dueDate: 1, status: 1 });
+FollowUpSchema.index({ targetId: 1 });

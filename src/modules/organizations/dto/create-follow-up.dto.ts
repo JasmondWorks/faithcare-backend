@@ -9,31 +9,51 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFollowUpDto {
-  @ApiProperty({ example: '64a1f2c3e4b5d6e7f8a9b0c1' })
-  @IsMongoId()
-  organizationId: string;
+  @ApiPropertyOptional({
+    example: 'first_timer',
+    enum: ['first_timer', 'member'],
+    description:
+      'Type of the contact this follow-up is for. Omit for ad-hoc follow-ups.',
+  })
+  @IsOptional()
+  @IsEnum(['first_timer', 'member'])
+  targetType?: 'first_timer' | 'member';
 
-  @ApiProperty({ example: '64a1f2c3e4b5d6e7f8a9b0c2' })
+  @ApiPropertyOptional({
+    example: '64a1f2c3e4b5d6e7f8a9b0c2',
+    description: 'ID of the linked FirstTimer or Member record.',
+  })
+  @IsOptional()
   @IsMongoId()
-  newMemberId: string;
+  targetId?: string;
 
-  @ApiProperty({ example: 'Amara Nwosu' })
+  @ApiProperty({
+    example: 'Amara Nwosu',
+    description: 'Contact name — always required',
+  })
   @IsString()
-  name: string;
+  contactName: string;
+
+  @ApiProperty({
+    example: '+2348012345678',
+    description: 'Contact phone — always required',
+  })
+  @IsString()
+  contactPhone: string;
 
   @ApiPropertyOptional({
     example: ['FIRST_TIMER'],
-    enum: ['FIRST_TIMER'],
+    enum: ['FIRST_TIMER', 'MEMBER', 'OTHER'],
     isArray: true,
   })
   @IsOptional()
   @IsArray()
-  @IsEnum(['FIRST_TIMER'], { each: true })
+  @IsEnum(['FIRST_TIMER', 'MEMBER', 'OTHER'], { each: true })
   tags?: string[];
 
-  @ApiPropertyOptional({ enum: ['HIGH'], example: 'HIGH' })
+  @ApiPropertyOptional({ enum: ['HIGH', 'MEDIUM', 'LOW'], default: 'HIGH' })
   @IsOptional()
-  @IsEnum(['HIGH'])
+  @IsEnum(['HIGH', 'MEDIUM', 'LOW'])
   priority?: string;
 
   @ApiProperty({

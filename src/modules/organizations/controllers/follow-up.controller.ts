@@ -48,8 +48,8 @@ export class FollowUpController {
   @ApiOperation({
     summary: 'List follow-ups for a specific first-timer (ADMIN only)',
   })
-  findByMember(@Param('newMemberId') newMemberId: string) {
-    return this.followUpService.findByMember(newMemberId);
+  findByTarget(@Param('newMemberId') targetId: string) {
+    return this.followUpService.findByTarget(targetId);
   }
 
   @Get(':id')
