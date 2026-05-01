@@ -70,12 +70,7 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     return { firstTimerQrCode };
   }
 
-  async findBySlug(slug: string) {
-    const org = await this.organizationRepository.findOne({
-      slug,
-      isDeleted: false,
-    });
-    if (!org) throw new NotFoundException('Organization not found');
-    return org;
+  findBySlug(slug: string) {
+    return this.organizationRepository.searchBySlug(slug);
   }
 }

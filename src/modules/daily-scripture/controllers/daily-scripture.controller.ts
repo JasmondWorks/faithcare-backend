@@ -10,11 +10,18 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { DailyScriptureService } from '../services/daily-scripture.service';
 import { DailyScriptureSchedulerService } from '../services/daily-scripture-scheduler.service';
 import { CreateDailyScriptureDto } from '../dto/create-daily-scripture.dto';
 import { UpdateDailyScriptureDto } from '../dto/update-daily-scripture.dto';
+import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
 
@@ -31,9 +38,11 @@ export class DailyScriptureController {
 
   @Get('global/today')
   @ApiOperation({
-    summary: "Get today's global verse of the day fetched from the Bible API",
+    summary:
+      "Get today's shared verse of the day (no auth required context — all users see the same verse)",
     description:
-      'Returns a single verse shared for all users. Auto-fetches if not yet cached for today.',
+      'Fetches from the Bible API (ourmanna.com) on first request of the day, then serves ' +
+      'the cached MongoDB result for subsequent calls. Returns null if the API is unavailable.',
   })
   getTodayGlobalVerse() {
     return this.schedulerService.fetchTodayOrTrigger();
@@ -43,77 +52,90 @@ export class DailyScriptureController {
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary:
-      'Manually trigger a Bible API fetch for today (ADMIN/SUPER_ADMIN only)',
+    summary: 'Manually trigger a Bible API fetch for today (ADMIN only)',
   })
   async triggerFetch() {
     await this.schedulerService.fetchAndStoreDailyVerse();
     return this.schedulerService.fetchTodayOrTrigger();
   }
 
-  // ── Per-user scripture ──────────────────────────────────────────
+  // ── Per-user scripture (auto-created from global verse) ─────────
 
   @Get('today')
-  @ApiOperation({ summary: "Get today's per-user scripture entry" })
-  findToday(@Query('userId') userId: string) {
-    return this.dailyScriptureService.findByUserAndDate(userId, new Date());
+  @ApiOperation({
+    summary: "Get today's verse for the authenticated user",
+    description:
+      'Auto-fetches the global verse from the Bible API, then finds or creates ' +
+      'a per-user record so the user can track reading completion. ' +
+      'Use PATCH /scripture/:id/complete to mark it read.',
+  })
+  getTodayForUser(@CurrentUser() user: RequestUser) {
+    return this.dailyScriptureService.getTodayForUser(user.id);
   }
 
-  // ── ADMIN / SUPER_ADMIN only ────────────────────────────────────
+  @Patch(':id/complete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Mark today's scripture as read/completed" })
+  markCompleted(@Param('id') id: string) {
+    return this.dailyScriptureService.markCompleted(id);
+  }
+
+  @Get('history')
+  @ApiOperation({
+    summary: "Get the authenticated user's scripture reading history",
+  })
+  getHistory(@CurrentUser() user: RequestUser) {
+    return this.dailyScriptureService.findByUser(user.id);
+  }
+
+  // ── ADMIN only ──────────────────────────────────────────────────
 
   @Post()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary: 'Add a per-user daily scripture entry (ADMIN/SUPER_ADMIN only)',
+    summary: 'Manually create a per-user scripture entry (ADMIN only)',
   })
-  create(@Body() createDailyScriptureDto: CreateDailyScriptureDto) {
-    return this.dailyScriptureService.create(createDailyScriptureDto);
+  create(@Body() dto: CreateDailyScriptureDto) {
+    return this.dailyScriptureService.create(dto);
   }
 
   @Get('user/:userId')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary: "List all of a user's daily scriptures (ADMIN/SUPER_ADMIN only)",
+    summary: "List a specific user's scripture history (ADMIN only)",
   })
   findByUser(@Param('userId') userId: string) {
     return this.dailyScriptureService.findByUser(userId);
   }
 
+  @Get(':date')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiQuery({ name: 'userId', required: true })
+  @ApiOperation({
+    summary: "Get a user's scripture entry for a specific date (ADMIN only)",
+  })
+  findByDate(@Param('date') date: string, @Query('userId') userId: string) {
+    return this.dailyScriptureService.findByUserAndDate(userId, new Date(date));
+  }
+
   @Patch('reminder/preferences')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({
-    summary:
-      'Set preferred daily reminder time and channel (ADMIN/SUPER_ADMIN only)',
-  })
+  @ApiOperation({ summary: 'Set reminder preferences (ADMIN only — stub)' })
   updateReminderPreferences(@Body() _body: any) {
     return { success: true, message: 'Preferences saved' };
   }
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({
-    summary: 'Update a daily scripture entry (ADMIN/SUPER_ADMIN only)',
-  })
+  @ApiOperation({ summary: 'Update a scripture entry (ADMIN only)' })
   update(@Param('id') id: string, @Body() updateDto: UpdateDailyScriptureDto) {
     return this.dailyScriptureService.update(id, updateDto);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({
-    summary: 'Delete a daily scripture entry (ADMIN/SUPER_ADMIN only)',
-  })
+  @ApiOperation({ summary: 'Delete a scripture entry (ADMIN only)' })
   delete(@Param('id') id: string) {
     return this.dailyScriptureService.delete(id);
-  }
-
-  @Get(':date')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({
-    summary:
-      'Get per-user scripture for a specific date (YYYY-MM-DD) (ADMIN/SUPER_ADMIN only)',
-  })
-  findByDate(@Param('date') date: string, @Query('userId') userId: string) {
-    return this.dailyScriptureService.findByUserAndDate(userId, new Date(date));
   }
 }
