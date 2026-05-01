@@ -33,12 +33,12 @@ async function bootstrap() {
     .setDescription(
       'REST API powering FaithCare — a digital pastoral care and spiritual growth platform.\n\n' +
         '**ChurchCare** (org-side): first-timer/second-timer registration via QR, follow-up tracking, ' +
-        'feedback logging, WhatsApp & bulk SMS messaging, customisable message templates (+ system presets), ' +
+        'WhatsApp & bulk SMS messaging, customisable message templates (+ system presets), ' +
         'dashboard analytics, communities, salvation records, and prayer requests.\n\n' +
         '**Spiritual Growth** (user-side): daily journal entries, verse of the day (auto-fetched from Bible API), ' +
         'per-user daily scriptures, and Pomodoro-style focus timer with scripture rewards.\n\n' +
         '**Real-time**: WebSocket notifications at `/notifications` (Socket.io) — ' +
-        'join room `org:<id>` to receive `first_timer_registered`, `follow_up_due`, `message_sent`, `feedback_received` events.',
+        'join room `org:<id>` to receive `first_timer_registered`, `follow_up_due`, `message_sent` events.',
     )
     .setVersion('2.0')
     .addTag(
@@ -63,7 +63,7 @@ async function bootstrap() {
     )
     .addTag(
       'ChurchCare — Feedback',
-      'Log visitor conversation feedback with sentMessage/receivedMessage',
+      'Scheduled follow-up tasks linked to first-timers; due-date tracking',
     )
     .addTag(
       'ChurchCare — Follow-Up',

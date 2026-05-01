@@ -19,7 +19,6 @@ import { DailyScriptureModule } from './modules/daily-scripture/daily-scripture.
 import { FocusTimerModule } from './modules/focus-timer/focus-timer.module';
 import { HealthModule } from './health/health.module';
 import { PrimeModule } from './modules/prime/prime.module';
-import { FeedbackModule } from './modules/feedback/feedback.module';
 import { MessageTemplatesModule } from './modules/message-templates/message-templates.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 
@@ -47,7 +46,6 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     FocusTimerModule,
     HealthModule,
     PrimeModule,
-    FeedbackModule,
     MessageTemplatesModule,
   ],
   controllers: [AppController],

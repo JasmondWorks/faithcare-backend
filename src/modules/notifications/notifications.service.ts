@@ -20,12 +20,4 @@ export class NotificationsService {
   notifyMessageSent(organizationId: string, data: unknown): void {
     this.gateway.emitToRoom(`org:${organizationId}`, 'message_sent', data);
   }
-
-  notifyFeedbackReceived(organizationId: string, data: unknown): void {
-    this.gateway.emitToRoom(`org:${organizationId}`, 'feedback_received', data);
-  }
-
-  // notifyNewMemberJoined(organizationId: string, data: unknown): void {
-  //   this.gateway.emitToRoom(`org:${organizationId}`, 'new_member_joined', data);
-  // }
 }
