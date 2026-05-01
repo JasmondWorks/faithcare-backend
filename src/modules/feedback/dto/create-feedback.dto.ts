@@ -1,15 +1,13 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+/** Manually log a conversation that already happened (e.g. in-person chat). */
 export class CreateFeedbackDto {
   @ApiProperty({ example: '64f1a2b3c4d5e6f7a8b9c0d1' })
   @IsString()
   organizationId: string;
 
-  @ApiPropertyOptional({
-    example: '64f1a2b3c4d5e6f7a8b9c0d2',
-    description: 'ID of the linked first-timer record',
-  })
+  @ApiPropertyOptional({ example: '64f1a2b3c4d5e6f7a8b9c0d2' })
   @IsOptional()
   @IsString()
   firstTimerId?: string;
@@ -18,22 +16,26 @@ export class CreateFeedbackDto {
   @IsString()
   visitorName: string;
 
-  @ApiProperty({
-    example: 'Hi John! We are glad you visited us. How was your experience?',
-  })
+  @ApiProperty({ example: '+2348012345678' })
   @IsString()
-  sentMessage: string;
-
-  @ApiProperty({
-    example: 'It was great! I felt welcomed. Looking forward to coming back.',
-  })
-  @IsString()
-  receivedMessage: string;
+  phoneNumber: string;
 
   @ApiProperty({
     enum: ['whatsapp', 'sms', 'email', 'in_person'],
-    example: 'whatsapp',
+    example: 'in_person',
   })
   @IsEnum(['whatsapp', 'sms', 'email', 'in_person'])
   channel: string;
+
+  @ApiPropertyOptional({ example: 'Hi John! We are glad you visited us.' })
+  @IsOptional()
+  @IsString()
+  sentMessage?: string;
+
+  @ApiPropertyOptional({
+    example: 'It was great! Looking forward to coming back.',
+  })
+  @IsOptional()
+  @IsString()
+  receivedMessage?: string;
 }

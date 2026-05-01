@@ -16,10 +16,7 @@ export class Feedback extends BaseSchema {
   visitorName: string;
 
   @Prop({ required: true })
-  sentMessage: string;
-
-  @Prop({ required: true })
-  receivedMessage: string;
+  phoneNumber: string;
 
   @Prop({
     type: String,
@@ -27,6 +24,22 @@ export class Feedback extends BaseSchema {
     required: true,
   })
   channel: string;
+
+  /** Message sent outbound to the visitor. Null if visitor initiated first. */
+  @Prop({ default: null })
+  sentMessage: string | null;
+
+  /** Visitor's inbound reply. Populated via PATCH /feedback/:id/reply. */
+  @Prop({ default: null })
+  receivedMessage: string | null;
+
+  /** Whether the outbound message was delivered. 'not_sent' for manual/in-person logs. */
+  @Prop({
+    type: String,
+    enum: ['not_sent', 'sent', 'failed'],
+    default: 'not_sent',
+  })
+  deliveryStatus: string;
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);

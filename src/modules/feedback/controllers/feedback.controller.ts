@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -7,6 +17,8 @@ import {
 } from '@nestjs/swagger';
 import { FeedbackService } from '../services/feedback.service';
 import { CreateFeedbackDto } from '../dto/create-feedback.dto';
+import { SendMessageDto } from '../dto/send-message.dto';
+import { LogReplyDto } from '../dto/log-reply.dto';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
 
@@ -17,9 +29,38 @@ import { Role } from 'src/core/enums/role.enum';
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 
+  @Post('send')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Send a WhatsApp or SMS message to a visitor and log it (ADMIN only)',
+    description:
+      'Sends the message via the chosen channel and creates a feedback record. ' +
+      'Returns the record plus `delivered: true/false` indicating whether the ' +
+      'message was accepted by the provider.',
+  })
+  sendMessage(@Body() dto: SendMessageDto) {
+    return this.feedbackService.sendMessage(dto);
+  }
+
+  @Patch(':id/reply')
+  @ApiOperation({
+    summary:
+      "Log a visitor's inbound reply on an existing feedback thread (ADMIN only)",
+    description:
+      'Use this when a visitor replies to a message. Updates `receivedMessage` on the record.',
+  })
+  logReply(@Param('id') id: string, @Body() dto: LogReplyDto) {
+    return this.feedbackService.logReply(id, dto.receivedMessage);
+  }
+
   @Post()
   @ApiOperation({
-    summary: 'Log a feedback record from a visitor conversation (ADMIN only)',
+    summary:
+      'Manually log a conversation (e.g. in-person) without sending a message (ADMIN only)',
+    description:
+      'Use this to record a conversation that happened outside the platform — ' +
+      'in person, via a personal phone, etc.',
   })
   create(@Body() dto: CreateFeedbackDto) {
     return this.feedbackService.create(dto);
