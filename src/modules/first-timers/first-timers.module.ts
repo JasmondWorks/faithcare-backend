@@ -6,6 +6,7 @@ import { FirstTimerRepository } from './repositories/first-timer.repository';
 import { SecondTimerRepository } from './repositories/second-timer.repository';
 import { FirstTimerService } from './services/first-timer.service';
 import { SecondTimerService } from './services/second-timer.service';
+import { FollowUpSchedulerService } from './services/follow-up-scheduler.service';
 import { FirstTimerController } from './controllers/first-timer.controller';
 
 @Module({
@@ -21,6 +22,7 @@ import { FirstTimerController } from './controllers/first-timer.controller';
     SecondTimerRepository,
     FirstTimerService,
     SecondTimerService,
+    FollowUpSchedulerService,
   ],
   exports: [FirstTimerService, SecondTimerService],
 })

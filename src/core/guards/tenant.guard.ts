@@ -27,7 +27,7 @@ export class TenantGuard implements CanActivate {
     const orgId = (request.params as Record<string, string>)?.organizationId;
     if (!orgId) return true;
 
-    if (user.role === Role.SUPER_ADMIN) return true;
+    if ((user.role as Role) === Role.SUPER_ADMIN) return true;
 
     const org = await this.organizationService.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found');

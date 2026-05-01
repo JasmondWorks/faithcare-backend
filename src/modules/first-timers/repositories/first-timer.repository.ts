@@ -16,4 +16,14 @@ export class FirstTimerRepository extends BaseRepository<FirstTimerDocument> {
   async findByOrganization(organizationId: string) {
     return this.model.find({ organizationId, isDeleted: false }).exec();
   }
+
+  async findDueFollowUps() {
+    return this.model
+      .find({
+        status: 'PENDING',
+        followUpScheduledAt: { $lte: new Date() },
+        isDeleted: false,
+      })
+      .exec();
+  }
 }
