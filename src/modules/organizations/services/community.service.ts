@@ -20,4 +20,12 @@ export class CommunityService extends BaseService<CommunityDocument> {
   async findWithRecentMembers(id: string) {
     return this.communityRepository.findRecentMembers(id);
   }
+
+  async addMember(communityId: string, userId: string) {
+    return this.communityRepository.addMember(communityId, userId);
+  }
+
+  async removeMember(communityId: string, userId: string) {
+    return this.communityRepository.removeMember(communityId, userId);
+  }
 }

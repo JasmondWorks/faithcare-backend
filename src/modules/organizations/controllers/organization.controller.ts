@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrganizationService } from '../services/organization.service';
-import { MembershipService } from '../services/membership.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { UpdateOrganizationDto } from '../dto/update-organization.dto';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
@@ -23,12 +22,7 @@ import { RequestUser } from 'src/core/types/request-user.interface';
 @ApiBearerAuth('access-token')
 @Controller('organizations')
 export class OrganizationController {
-  constructor(
-    private readonly organizationService: OrganizationService,
-    private readonly membershipService: MembershipService,
-  ) {}
-
-  // ── ADMIN / SUPER_ADMIN only ────────────────────────────────────
+  constructor(private readonly organizationService: OrganizationService) {}
 
   @Post()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
@@ -61,8 +55,7 @@ export class OrganizationController {
   @Post(':id/qr-code/regenerate')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary:
-      'Regenerate the first-timer QR code for an organization (ADMIN/SUPER_ADMIN only)',
+    summary: 'Regenerate the first-timer QR code (ADMIN/SUPER_ADMIN only)',
   })
   regenerateQrCode(@Param('id') id: string) {
     return this.organizationService.regenerateQrCode(id);
@@ -76,16 +69,6 @@ export class OrganizationController {
   })
   delete(@Param('id') id: string) {
     return this.organizationService.softDelete(id);
-  }
-
-  // ── All authenticated users ─────────────────────────────────────
-
-  @Get('mine')
-  @ApiOperation({
-    summary: 'List all organizations the authenticated user belongs to',
-  })
-  mine(@CurrentUser() user: RequestUser) {
-    return this.membershipService.getUserOrganizations(user.id);
   }
 
   @Get(':id')

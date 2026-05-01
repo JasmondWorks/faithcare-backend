@@ -7,15 +7,11 @@ import * as QRCode from 'qrcode';
 import { BaseService } from 'src/core/services/base.service';
 import { OrganizationDocument } from '../schemas/organization.schema';
 import { OrganizationRepository } from '../repositories/organization.repository';
-import { MembershipService } from './membership.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 
 @Injectable()
 export class OrganizationService extends BaseService<OrganizationDocument> {
-  constructor(
-    private organizationRepository: OrganizationRepository,
-    private membershipService: MembershipService,
-  ) {
+  constructor(private organizationRepository: OrganizationRepository) {
     super(organizationRepository);
   }
 
@@ -37,7 +33,6 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
       .replace(/-+/g, '-');
   }
 
-  /** Create org, generate its first-timer QR code, and grant the creator OWNER membership */
   async createWithOwner(dto: CreateOrganizationDto, createdByUserId: string) {
     const slug = dto.slug ?? this.toSlug(dto.name);
     const slugTaken = await this.organizationRepository.findOne({ slug });
@@ -51,7 +46,6 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     });
 
     const orgId = String(org._id);
-
     const firstTimerQrCode = await this.generateFirstTimerQrCode(
       orgId,
       slug,
@@ -60,16 +54,9 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     await this.organizationRepository.update(orgId, { firstTimerQrCode });
     org.firstTimerQrCode = firstTimerQrCode;
 
-    await this.membershipService.createOwnership(
-      createdByUserId,
-      orgId,
-      dto.organizationRole,
-    );
-
     return org;
   }
 
-  /** Regenerate the first-timer QR code for an existing org (e.g. after a name/slug change) */
   async regenerateQrCode(orgId: string) {
     const org = await this.organizationRepository.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found');

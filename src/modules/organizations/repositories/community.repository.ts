@@ -23,6 +23,26 @@ export class CommunityRepository extends BaseRepository<CommunityDocument> {
       .exec();
   }
 
+  async addMember(communityId: string, userId: string) {
+    return this.model
+      .findByIdAndUpdate(
+        communityId,
+        { $addToSet: { members: userId } },
+        { new: true },
+      )
+      .exec();
+  }
+
+  async removeMember(communityId: string, userId: string) {
+    return this.model
+      .findByIdAndUpdate(
+        communityId,
+        { $pull: { members: userId } },
+        { new: true },
+      )
+      .exec();
+  }
+
   async findRecentMembers(id: string) {
     const community = await this.model.findById(id).exec();
     if (!community) return null;

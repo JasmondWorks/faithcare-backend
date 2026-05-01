@@ -14,7 +14,6 @@ import { OAuth2Client } from 'google-auth-library';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
 import { EmailService } from './services/email.service';
-import { MembershipService } from '../organizations/services/membership.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -29,15 +28,10 @@ export class AuthService {
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
-    private membershipService: MembershipService,
   ) {}
 
   // ── Token helpers ──────────────────────────────────────────────
 
-  /**
-   * Issues a GLOBAL token — no org context.
-   * Use switchOrganization() to get an org-scoped token.
-   */
   private signTokens(user: UserDocument) {
     const payload = {
       sub: String(user._id),
@@ -178,49 +172,6 @@ export class AuthService {
     return {
       success: true,
       data: { accessToken, tokenType: 'Bearer', expiresIn: 28800 },
-    };
-  }
-
-  /**
-   * Exchange the user's global token for an org-scoped one.
-   * The org-scoped token embeds the active org and the user's role in that org.
-   * All tenant-protected routes require this token.
-   */
-  async switchOrganization(userId: string, organizationId: string) {
-    const membership = await this.membershipService.findActiveMembership(
-      userId,
-      organizationId,
-    );
-    if (!membership) {
-      throw new UnauthorizedException(
-        'You are not an active member of this organization',
-      );
-    }
-
-    const user = await this.userModel.findById(userId);
-    if (!user) throw new UnauthorizedException('User not found');
-
-    const payload = {
-      sub: userId,
-      email: user.email,
-      role: user.role,
-      activeOrganizationId: organizationId,
-      activeOrganizationRole: membership.role,
-    };
-
-    const accessToken = this.jwtService.sign(payload, {
-      secret: this.config.get<string>('jwt.accessSecret') as string,
-      expiresIn: this.config.get('jwt.accessExpiresIn'),
-    });
-
-    return {
-      success: true,
-      data: {
-        accessToken,
-        tokenType: 'Bearer',
-        activeOrganizationId: organizationId,
-        activeOrganizationRole: membership.role,
-      },
     };
   }
 

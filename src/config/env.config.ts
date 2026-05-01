@@ -31,6 +31,16 @@ export default () => ({
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID ?? '',
   },
+
+  whatsapp: {
+    token: process.env.WHATSAPP_TOKEN ?? '',
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID ?? '',
+  },
+
+  termii: {
+    apiKey: process.env.TERMII_API_KEY ?? '',
+    senderId: process.env.TERMII_SENDER_ID ?? 'FaithCare',
+  },
 });
 
 const requireEnv = (key: string): string => {

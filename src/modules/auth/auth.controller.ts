@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  Param,
   Req,
   Res,
   HttpCode,
@@ -17,9 +16,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
-import { RequestUser } from 'src/core/types/request-user.interface';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
@@ -106,7 +103,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Sign in with Google (client-side flow)',
     description:
-      'The frontend uses the Google Identity Services SDK to get an id_token, then POSTs it here. ' +
+      'The frontend uses the Google Identity Services SDK to obtain an id_token, then POSTs it here. ' +
       'Creates a new USER account on first sign-in. Returns the same JWT payload as regular login.',
   })
   @ApiResponse({
@@ -136,9 +133,8 @@ export class AuthController {
   @ApiOperation({
     summary: 'Exchange a refresh token for a new access token',
     description:
-      'Accepts the refresh token from the request body OR the `refresh_token` HttpOnly cookie. ' +
-      'Body takes precedence. Next.js apps should proxy this through a route handler that ' +
-      'reads the cookie server-side and forwards the token in the body.',
+      'Accepts the refresh token from the request body OR the refresh_token HttpOnly cookie. ' +
+      'Body takes precedence.',
   })
   @ApiResponse({ status: 200, description: 'New access_token returned' })
   @ApiResponse({ status: 401, description: 'Missing or invalid refresh token' })
@@ -152,7 +148,6 @@ export class AuthController {
     ) {
       throw new ForbiddenException('Request origin not allowed');
     }
-
     const cookieToken = req.cookies?.[REFRESH_COOKIE] as string | undefined;
     const token = body?.refreshToken ?? cookieToken;
     if (!token) throw new UnauthorizedException('No refresh token');
@@ -197,8 +192,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Log out — clears the refresh token cookie',
     description:
-      'Clears the HttpOnly refresh_token cookie. The access token remains valid ' +
-      'until it expires naturally (stateless JWT), so clients should discard it locally on logout.',
+      'Clears the HttpOnly refresh_token cookie. The access token expires naturally; clients should discard it locally.',
   })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
   logout(@Res({ passthrough: true }) res: Response) {
@@ -208,26 +202,5 @@ export class AuthController {
       sameSite: isProduction ? 'none' : 'lax',
     });
     return { success: true, message: 'Logged out successfully' };
-  }
-
-  @ApiBearerAuth('access-token')
-  @Post('switch-organization/:organizationId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Exchange global token for an org-scoped token',
-    description:
-      'Returns a new access token containing activeOrganizationId and activeOrganizationRole. ' +
-      'Use this token for all subsequent requests scoped to that organization.',
-  })
-  @ApiResponse({ status: 200, description: 'Org-scoped token issued' })
-  @ApiResponse({
-    status: 401,
-    description: 'Not an active member of this organization',
-  })
-  switchOrganization(
-    @Param('organizationId') organizationId: string,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.authService.switchOrganization(user.id, organizationId);
   }
 }

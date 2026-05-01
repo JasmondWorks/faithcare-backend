@@ -3,53 +3,39 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { MembershipService } from 'src/modules/organizations/services/membership.service';
+import { OrganizationService } from 'src/modules/organizations/services/organization.service';
+import { Role } from 'src/core/enums/role.enum';
 
 /**
- * Protects routes scoped to a specific organization.
- *
- * Requires the caller to have previously exchanged their global token for an
- * org-scoped token via POST /auth/switch-organization/:organizationId.
- *
- * Checks:
- *  1. JWT contains activeOrganizationId (i.e. caller has switched into an org)
- *  2. activeOrganizationId matches the :organizationId route param
- *  3. Caller still has an ACTIVE membership in that org (guards against stale tokens)
+ * Protects org-scoped admin routes.
+ * Verifies the requesting ADMIN created the organization.
+ * SUPER_ADMIN bypasses the ownership check and can access any org.
  */
 @Injectable()
 export class TenantGuard implements CanActivate {
-  constructor(private readonly membershipService: MembershipService) {}
+  constructor(private readonly organizationService: OrganizationService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const user = request.user;
 
-    if (!user?.activeOrganizationId) {
+    if (!user) throw new ForbiddenException('Authentication required');
+
+    const orgId = (request.params as Record<string, string>)?.organizationId;
+    if (!orgId) return true;
+
+    if (user.role === Role.SUPER_ADMIN) return true;
+
+    const org = await this.organizationService.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found');
+
+    const createdBy = String((org as any).createdBy ?? '');
+    if (createdBy !== user.id) {
       throw new ForbiddenException(
-        'No organization context. Call POST /auth/switch-organization/:organizationId first.',
-      );
-    }
-
-    const routeOrgId =
-      (request.params as Record<string, string>)?.organizationId ?? '';
-
-    if (routeOrgId && user.activeOrganizationId !== routeOrgId) {
-      throw new ForbiddenException(
-        'Token organization context does not match the requested organization.',
-      );
-    }
-
-    // Re-verify membership is still active (catches revoked/suspended memberships)
-    const membership = await this.membershipService.findActiveMembership(
-      user.id,
-      user.activeOrganizationId,
-    );
-
-    if (!membership) {
-      throw new ForbiddenException(
-        'You are not an active member of this organization.',
+        'You do not have access to this organization',
       );
     }
 
