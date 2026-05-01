@@ -18,7 +18,7 @@ export class FollowUp extends BaseSchema {
   @Prop({ type: [String], enum: ['FIRST_TIMER'], default: ['FIRST_TIMER'] })
   tags: string[];
 
-  @Prop({ type: String, enum: ['HIGH'], default: 'HIGH' })
+  @Prop({ type: String, enum: ['HIGH', 'MEDIUM', 'LOW'], default: 'HIGH' })
   priority: string;
 
   @Prop({ required: true })
@@ -26,6 +26,35 @@ export class FollowUp extends BaseSchema {
 
   @Prop({ required: true })
   dueDate: Date;
+
+  // ── Messaging fields ────────────────────────────────────────────
+
+  @Prop({ default: null })
+  phoneNumber: string | null;
+
+  @Prop({
+    type: String,
+    enum: ['whatsapp', 'sms', 'email', 'in_person'],
+    default: 'whatsapp',
+  })
+  channel: string;
+
+  /** Outbound message sent to the visitor. */
+  @Prop({ default: null })
+  sentMessage: string | null;
+
+  /** Visitor's inbound reply, logged via PATCH /:id/reply. */
+  @Prop({ default: null })
+  receivedMessage: string | null;
+
+  @Prop({
+    type: String,
+    enum: ['not_sent', 'sent', 'failed'],
+    default: 'not_sent',
+  })
+  deliveryStatus: string;
 }
 
 export const FollowUpSchema = SchemaFactory.createForClass(FollowUp);
+FollowUpSchema.index({ organizationId: 1, dueDate: 1 });
+FollowUpSchema.index({ newMemberId: 1 });
