@@ -24,6 +24,8 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { GoogleSignInDto } from './dto/google-signin.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 const REFRESH_COOKIE = 'refresh_token';
 
@@ -184,6 +186,37 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'User not found' })
   resendOtp(@Body() resendOtpDto: ResendOtpDto) {
     return this.authService.resendOtp(resendOtpDto);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Request a password reset OTP',
+    description:
+      'Sends a 6-digit OTP to the provided email address. Always returns success to prevent ' +
+      'user enumeration — the email is only sent if the address is registered.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'OTP sent (if email is registered)',
+  })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password using OTP',
+    description:
+      'Verifies the OTP sent to the email address and sets a new password. OTP expires in 10 minutes.',
+  })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 400, description: 'OTP is invalid or has expired' })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.email, dto.otp, dto.newPassword);
   }
 
   @ApiBearerAuth('access-token')

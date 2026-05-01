@@ -45,36 +45,67 @@ async function bootstrap(): Promise<void> {
   const config = new DocumentBuilder()
     .setTitle('FaithCare API')
     .setDescription(
-      "REST API powering Prime Church's digital care and spiritual growth platform. " +
-        'ChurchCare handles first-timer follow-up; the Journal and Scripture modules keep ' +
-        'young professionals spiritually grounded.',
+      'REST API powering FaithCare — a digital pastoral care and spiritual growth platform.\n\n' +
+        '**ChurchCare** (org-side): first-timer/second-timer registration via QR, follow-up tracking, ' +
+        'feedback logging, WhatsApp & bulk SMS messaging, customisable message templates (+ system presets), ' +
+        'dashboard analytics, communities, salvation records, and prayer requests.\n\n' +
+        '**Spiritual Growth** (user-side): daily journal entries, verse of the day (auto-fetched from Bible API), ' +
+        'per-user daily scriptures, and Pomodoro-style focus timer with scripture rewards.\n\n' +
+        '**Real-time**: WebSocket notifications at `/notifications` (Socket.io) — ' +
+        'join room `org:<id>` to receive `first_timer_registered`, `follow_up_due`, `message_sent`, `feedback_received` events.',
     )
-    .setVersion('1.0')
+    .setVersion('2.0')
     .addTag(
       'Authentication',
-      'Login (role determines access level), registration, email OTP verification, token refresh, org context switch',
+      'Registration, login, Google OAuth, OTP verification, password reset, token refresh, logout',
+    )
+    .addTag(
+      'Users',
+      'User profile management (admin CRUD + self GET /users/me)',
+    )
+    .addTag(
+      'Organization',
+      'Create and manage church organizations; QR code regeneration',
+    )
+    .addTag(
+      'Organization — Communities',
+      'Community groups within an org; admin-managed member lists',
     )
     .addTag(
       'ChurchCare — First Timers',
-      'QR code registration, visitor records, follow-up status',
+      'QR-code visitor registration, follow-up status tracking',
+    )
+    .addTag(
+      'ChurchCare — Feedback',
+      'Log visitor conversation feedback with sentMessage/receivedMessage',
     )
     .addTag(
       'ChurchCare — Follow-Up',
-      'Message templates, delivery logs, manual messaging triggers',
+      'Scheduled follow-up records linked to first-timers',
     )
-    .addTag('ChurchCare — Dashboard', 'Aggregate metrics and weekly trend data')
-    .addTag('Journal', 'Full CRUD for sermon and devotional journal entries')
+    .addTag(
+      'ChurchCare — Dashboard',
+      'Aggregate metrics and weekly trend charts for org admins',
+    )
+    .addTag(
+      'Message Templates',
+      'Custom org templates + read-only system presets for WhatsApp & SMS',
+    )
+    .addTag(
+      'Journal',
+      'Full CRUD for personal sermon and devotional journal entries',
+    )
     .addTag(
       'Scripture',
-      'One scripture per day with encouragement and reminder preferences',
+      'Global verse of the day (Bible API) and per-user daily scripture entries',
     )
     .addTag(
       'Focus Timer',
-      '25-minute Pomodoro-style sessions with scripture reward on completion',
+      '25-minute Pomodoro sessions with scripture reward on completion',
     )
     .addTag(
       'Prime Church',
-      'Workforce applications, Trybe membership, and prayer requests for Prime Church',
+      'Workforce applications, Trybe membership, and prayer requests',
     )
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

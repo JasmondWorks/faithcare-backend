@@ -244,6 +244,51 @@ export class AuthService {
     };
   }
 
+  // ── Password reset ─────────────────────────────────────────────
+
+  async forgotPassword(email: string) {
+    const user = await this.userModel.findOne({ email, isDeleted: false });
+    // Always return success — do not reveal whether the email exists
+    if (user) {
+      await this.createAndSendOtp(email, 'password_reset');
+    }
+    return {
+      success: true,
+      message:
+        'If that email is registered, a password reset code has been sent.',
+    };
+  }
+
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    const record = await this.otpModel.findOne({
+      email,
+      type: 'password_reset',
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!record) throw new BadRequestException('OTP is invalid or has expired');
+
+    const isMatch = await bcrypt.compare(otp, record.hashedOtp);
+    if (!isMatch)
+      throw new BadRequestException('OTP is invalid or has expired');
+
+    await this.otpModel.findByIdAndUpdate(record._id, { used: true });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    const user = await this.userModel.findOneAndUpdate(
+      { email },
+      { password: hashedPassword },
+      { new: true },
+    );
+    if (!user) throw new NotFoundException('User not found');
+
+    return {
+      success: true,
+      message: 'Password reset successfully. You can now log in.',
+    };
+  }
+
   // ── OTP verification ───────────────────────────────────────────
 
   async verifyEmailOtp(dto: VerifyOtpDto) {
