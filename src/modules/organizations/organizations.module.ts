@@ -14,6 +14,10 @@ import {
   PrayerRequestSchema,
 } from './schemas/prayer-request.schema';
 import { FollowUp, FollowUpSchema } from './schemas/follow-up.schema';
+import {
+  FirstTimer,
+  FirstTimerSchema,
+} from 'src/modules/first-timers/schemas/first-timer.schema';
 import { OrganizationRepository } from './repositories/organization.repository';
 import { SalvationRecordRepository } from './repositories/salvation-record.repository';
 import { CommunityRepository } from './repositories/community.repository';
@@ -38,6 +42,7 @@ import { FollowUpController } from './controllers/follow-up.controller';
       { name: Community.name, schema: CommunitySchema },
       { name: PrayerRequest.name, schema: PrayerRequestSchema },
       { name: FollowUp.name, schema: FollowUpSchema },
+      { name: FirstTimer.name, schema: FirstTimerSchema },
     ]),
   ],
   controllers: [

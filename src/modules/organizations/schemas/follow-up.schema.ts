@@ -27,6 +27,19 @@ export class FollowUp extends BaseSchema {
   @Prop({ required: true })
   dueDate: Date;
 
+  /**
+   * PENDING   — task created, no message sent yet
+   * CONTACTED — message sent and delivered
+   * REPLIED   — visitor replied (receivedMessage logged)
+   * CLOSED    — manually resolved without a reply
+   */
+  @Prop({
+    type: String,
+    enum: ['PENDING', 'CONTACTED', 'REPLIED', 'CLOSED'],
+    default: 'PENDING',
+  })
+  status: string;
+
   // ── Messaging fields ────────────────────────────────────────────
 
   @Prop({ default: null })
