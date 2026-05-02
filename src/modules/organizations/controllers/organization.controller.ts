@@ -9,7 +9,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { OrganizationService } from '../services/organization.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { UpdateOrganizationDto } from '../dto/update-organization.dto';
@@ -27,9 +27,13 @@ export class OrganizationController {
   @Post()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary:
-      'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)',
+    summary: 'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)',
+    description:
+      'Creates the organization and generates a first-timer QR code. ' +
+      'Sets `organizationId`, `isOrgCreator: true`, and `isOnboarded: true` on the authenticated admin.',
   })
+  @ApiResponse({ status: 201, description: 'Organization created' })
+  @ApiResponse({ status: 409, description: 'Slug already taken' })
   create(@Body() dto: CreateOrganizationDto, @CurrentUser() user: RequestUser) {
     return this.organizationService.createWithOwner(dto, user.id);
   }
@@ -37,8 +41,12 @@ export class OrganizationController {
   @Get('slug/:slug')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary: 'Find an organization by its URL slug (ADMIN/SUPER_ADMIN only)',
+    summary: 'Search organizations by slug (ADMIN/SUPER_ADMIN only)',
+    description:
+      'Performs a partial (regex) match against the slug field. Returns an array of up to 20 matching organizations. ' +
+      'Useful for admins searching for an org to apply to.',
   })
+  @ApiResponse({ status: 200, description: 'Array of matching organizations (may be empty)' })
   findBySlug(@Param('slug') slug: string) {
     return this.organizationService.findBySlug(slug);
   }
@@ -76,9 +84,10 @@ export class OrganizationController {
   @ApiOperation({
     summary: 'Get the organization associated with the authenticated admin',
     description:
-      "Returns full org details using the organizationId already present in the admin's login response. " +
-      'No path param needed — resolves from the JWT.',
+      "Returns full org details using the `organizationId` embedded in the admin's JWT. " +
+      'No path parameter needed. Returns `null` if the admin has no organization yet.',
   })
+  @ApiResponse({ status: 200, description: 'Organization record (or null)' })
   getMyOrg(@CurrentUser() user: RequestUser) {
     if (!user.organizationId) return null;
     return this.organizationService.getMyOrganization(user.organizationId);

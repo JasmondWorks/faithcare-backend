@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { FocusTimerService } from '../services/focus-timer.service';
@@ -15,6 +14,8 @@ import { UpdateFocusTimerDto } from '../dto/update-focus-timer.dto';
 import { FocusTimerStatus } from 'src/core/enums/focus-timer-status.enum';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
+import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
 
 @ApiTags('Focus Timer')
 @ApiBearerAuth('access-token')
@@ -25,24 +26,27 @@ export class FocusTimerController {
 
   @Post()
   @ApiOperation({ summary: 'Start a new focus session (USER only)' })
-  create(@Body() createFocusTimerDto: CreateFocusTimerDto) {
-    return this.focusTimerService.create(createFocusTimerDto);
+  create(
+    @Body() createFocusTimerDto: CreateFocusTimerDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.focusTimerService.create({ ...createFocusTimerDto, userId: user.id });
   }
 
   @Get()
   @ApiOperation({
     summary: 'List all focus sessions with summary stats (USER only)',
   })
-  findByUser(@Query('userId') userId: string) {
-    return this.focusTimerService.findByUser(userId);
+  findByUser(@CurrentUser() user: RequestUser) {
+    return this.focusTimerService.findByUser(user.id);
   }
 
   @Get('active')
   @ApiOperation({
     summary: 'Get the currently active focus session (USER only)',
   })
-  findActive(@Query('userId') userId: string) {
-    return this.focusTimerService.findActiveByUser(userId);
+  findActive(@CurrentUser() user: RequestUser) {
+    return this.focusTimerService.findActiveByUser(user.id);
   }
 
   @Get(':id')

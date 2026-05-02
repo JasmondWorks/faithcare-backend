@@ -6,16 +6,10 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DailyScriptureService } from '../services/daily-scripture.service';
 import { DailyScriptureSchedulerService } from '../services/daily-scripture-scheduler.service';
 import { CreateDailyScriptureDto } from '../dto/create-daily-scripture.dto';
@@ -108,13 +102,13 @@ export class DailyScriptureController {
     return this.dailyScriptureService.findByUser(userId);
   }
 
-  @Get(':date')
+  @Get('user/:userId/date/:date')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiQuery({ name: 'userId', required: true })
   @ApiOperation({
-    summary: "Get a user's scripture entry for a specific date (ADMIN only)",
+    summary: "Get a specific user's scripture entry for a date (ADMIN only)",
+    description: 'Date format: YYYY-MM-DD',
   })
-  findByDate(@Param('date') date: string, @Query('userId') userId: string) {
+  findByDate(@Param('userId') userId: string, @Param('date') date: string) {
     return this.dailyScriptureService.findByUserAndDate(userId, new Date(date));
   }
 

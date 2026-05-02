@@ -19,6 +19,8 @@ import { CreateJournalEntryDto } from '../dto/create-journal-entry.dto';
 import { UpdateJournalEntryDto } from '../dto/update-journal-entry.dto';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
+import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
 
 @ApiTags('Journal')
 @ApiBearerAuth('access-token')
@@ -31,8 +33,11 @@ export class JournalEntryController {
   @ApiOperation({
     summary: 'Create a new sermon or devotional journal entry (USER only)',
   })
-  create(@Body() createJournalEntryDto: CreateJournalEntryDto) {
-    return this.journalEntryService.create(createJournalEntryDto);
+  create(
+    @Body() createJournalEntryDto: CreateJournalEntryDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.journalEntryService.create({ ...createJournalEntryDto, userId: user.id });
   }
 
   @Get()
@@ -44,13 +49,13 @@ export class JournalEntryController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'sort', required: false, enum: ['asc', 'desc'] })
   findByUser(
-    @Query('userId') userId: string,
+    @CurrentUser() user: RequestUser,
     @Query('page') _page?: number,
     @Query('limit') _limit?: number,
     @Query('search') _search?: string,
     @Query('sort') _sort?: 'asc' | 'desc',
   ) {
-    return this.journalEntryService.findByUser(userId);
+    return this.journalEntryService.findByUser(user.id);
   }
 
   @Get(':id')

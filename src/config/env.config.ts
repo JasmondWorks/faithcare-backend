@@ -42,6 +42,8 @@ export default () => ({
     senderId: process.env.TERMII_SENDER_ID ?? 'FaithCare',
     baseUrl: process.env.TERMII_BASE_URL ?? 'https://api.ng.termii.com/api',
   },
+
+  platformUrl: process.env.PLATFORM_URL ?? 'https://faithcare-web.vercel.app',
 });
 
 const requireEnv = (key: string): string => {

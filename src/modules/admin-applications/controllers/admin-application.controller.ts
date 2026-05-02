@@ -7,7 +7,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AdminApplicationService } from '../services/admin-application.service';
 import {
   CreateApplicationDto,
@@ -30,14 +30,24 @@ export class AdminApplicationController {
     summary: 'Submit an application to join an organization as admin',
     description:
       'An ADMIN account that is not yet verified submits this to request org-level access. ' +
-      'Expires in 30 days if not approved — account is auto-deleted on expiry.',
+      'Sets `pendingOrganizationId` on the user. ' +
+      'Expires in 30 days if not approved — the account is auto-deleted on expiry.',
   })
+  @ApiResponse({ status: 201, description: 'Application submitted' })
+  @ApiResponse({ status: 400, description: 'Account already verified' })
+  @ApiResponse({ status: 403, description: 'Only ADMIN accounts can apply' })
+  @ApiResponse({ status: 404, description: 'User or organization not found' })
+  @ApiResponse({ status: 409, description: 'A pending application already exists' })
   apply(@Body() dto: CreateApplicationDto, @CurrentUser() user: RequestUser) {
     return this.service.apply(user.id, dto.organizationId);
   }
 
   @Get('mine')
-  @ApiOperation({ summary: 'Get the status of your own application' })
+  @ApiOperation({
+    summary: 'Get the status of your own application',
+    description: 'Returns the current application record for the authenticated admin, or null if none exists.',
+  })
+  @ApiResponse({ status: 200, description: 'Application record (or null)' })
   getMyApplication(@CurrentUser() user: RequestUser) {
     return this.service.getMyApplication(user.id);
   }
@@ -45,9 +55,10 @@ export class AdminApplicationController {
   @Get('organization/:organizationId')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary:
-      'List pending applications for an organization (org creator or SUPER_ADMIN only)',
+    summary: 'List pending applications for an organization (org creator or SUPER_ADMIN only)',
   })
+  @ApiResponse({ status: 200, description: 'List of pending applications' })
+  @ApiResponse({ status: 403, description: 'Not the org creator or SUPER_ADMIN' })
   listForOrg(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: RequestUser,
@@ -61,9 +72,17 @@ export class AdminApplicationController {
   @ApiOperation({
     summary: 'Approve an admin application',
     description:
-      'Granted immediately if approver is the org creator or SUPER_ADMIN. ' +
-      'Otherwise requires 2 approvals from verified admins.',
+      'Granted immediately if the approver is the org creator or SUPER_ADMIN. ' +
+      'Otherwise requires 2 approvals from verified admins in total. ' +
+      'On full approval, sets `isAdminVerified: true`, `organizationId`, and `isOnboarded: true` on the applicant.',
   })
+  @ApiResponse({
+    status: 200,
+    description: 'Approval recorded — `approved: true` when fully granted, `approved: false` when awaiting more votes',
+  })
+  @ApiResponse({ status: 400, description: 'Application is no longer pending' })
+  @ApiResponse({ status: 404, description: 'Application not found' })
+  @ApiResponse({ status: 409, description: 'You have already approved this application' })
   approve(@Param('id') id: string, @CurrentUser() user: RequestUser) {
     return this.service.approve(id, user.id, user.role);
   }
@@ -73,7 +92,13 @@ export class AdminApplicationController {
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
     summary: 'Reject an admin application (org creator or SUPER_ADMIN only)',
+    description:
+      'Clears `pendingOrganizationId` from the applicant. Optionally records a rejection reason.',
   })
+  @ApiResponse({ status: 200, description: 'Application rejected' })
+  @ApiResponse({ status: 400, description: 'Application is no longer pending' })
+  @ApiResponse({ status: 403, description: 'Not the org creator or SUPER_ADMIN' })
+  @ApiResponse({ status: 404, description: 'Application not found' })
   reject(
     @Param('id') id: string,
     @Body() dto: ReviewApplicationDto,

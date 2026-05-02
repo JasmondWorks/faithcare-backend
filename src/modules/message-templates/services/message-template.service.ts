@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -39,8 +38,8 @@ export class MessageTemplateService
     return this.templateRepository.findPresets();
   }
 
-  createOrgTemplate(dto: CreateMessageTemplateDto) {
-    return this.templateRepository.create(dto);
+  createOrgTemplate(dto: CreateMessageTemplateDto, organizationId: string) {
+    return this.templateRepository.create({ ...dto, organizationId });
   }
 
   async updateOrgTemplate(
@@ -82,9 +81,4 @@ export class MessageTemplateService
     );
   }
 
-  validateOrgAccess(organizationId: string, dto: CreateMessageTemplateDto) {
-    if (dto.organizationId !== organizationId) {
-      throw new BadRequestException('organizationId mismatch');
-    }
-  }
 }

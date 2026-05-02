@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorFilter } from './core/errors/global-error.filter';
 import cookieParser from 'cookie-parser';
+import envConfig from './config/env.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -66,12 +67,16 @@ async function bootstrap() {
       'QR-code visitor registration, follow-up status tracking',
     )
     .addTag(
-      'ChurchCare — Feedback',
-      'Scheduled follow-up tasks linked to first-timers; due-date tracking',
+      'ChurchCare — Second Timers',
+      'Second-visit records linked to a first-timer; managed per organization',
     )
     .addTag(
       'ChurchCare — Follow-Up',
-      'Scheduled follow-up records linked to first-timers',
+      'Follow-up tasks for first-timers, members, or any contact; supports WhatsApp & SMS messaging',
+    )
+    .addTag(
+      'Admin Applications',
+      'Admin org-join applications: submit, review, approve/reject; auto-deleted after 30 days',
     )
     .addTag(
       'ChurchCare — Dashboard',
@@ -79,7 +84,7 @@ async function bootstrap() {
     )
     .addTag(
       'Message Templates',
-      'Custom org templates + read-only system presets for WhatsApp & SMS',
+      'Custom org message templates (fully editable) + system preset templates for WhatsApp & SMS',
     )
     .addTag(
       'Journal',
@@ -102,7 +107,7 @@ async function bootstrap() {
       'access-token',
     )
     .addSecurityRequirements('access-token')
-    .setContact('FaithCare', 'https://faithcare-zeta.vercel.app/', '')
+    .setContact('FaithCare', envConfig().platformUrl, '')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

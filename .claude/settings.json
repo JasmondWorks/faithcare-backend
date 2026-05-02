@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git commit -m ' *)",
-      "Bash(git merge *)"
+      "Bash(git merge *)",
+      "Bash(xargs ls *)"
     ]
   }
 }

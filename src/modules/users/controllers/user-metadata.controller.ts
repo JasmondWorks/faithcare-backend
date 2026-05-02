@@ -28,17 +28,19 @@ export class UserMetaDataController {
 
   @Post()
   @ApiOperation({ summary: 'Create user metadata record (USER only)' })
-  create(@Body() createUserMetaDataDto: CreateUserMetaDataDto) {
-    return this.userMetaDataService.create(createUserMetaDataDto);
+  create(
+    @Body() createUserMetaDataDto: CreateUserMetaDataDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.userMetaDataService.create({ ...createUserMetaDataDto, userId: user.id });
   }
 
-  @Get('user/:userId')
+  @Get('me')
   @ApiOperation({
-    summary:
-      'Get metadata by user ID — includes populated church info (USER only)',
+    summary: 'Get own metadata — includes populated church info (USER only)',
   })
-  findByUserId(@Param('userId') userId: string) {
-    return this.userMetaDataService.findByUserId(userId);
+  getMyMetadata(@CurrentUser() user: RequestUser) {
+    return this.userMetaDataService.findByUserId(user.id);
   }
 
   @Get(':id')

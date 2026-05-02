@@ -11,12 +11,23 @@ export class FollowUp extends BaseSchema {
 
   /**
    * Who this follow-up is for.
-   * 'first_timer' → links to a FirstTimer record (new visitor)
-   * 'member'      → links to a Member record (regular attendee)
-   * null          → ad-hoc follow-up with no linked record
+   * 'first_timer'  → links to a FirstTimer record (first visit)
+   * 'second_timer' → links to a SecondTimer record (second visit)
+   * 'member'       → links to a Member record (regular attendee)
+   * null           → ad-hoc follow-up with no linked record
    */
-  @Prop({ type: String, enum: ['first_timer', 'member'], default: null })
+  @Prop({
+    type: String,
+    enum: ['first_timer', 'second_timer', 'member'],
+    default: null,
+  })
   targetType: string | null;
+
+  @Prop({ default: false })
+  isFirstTimer: boolean;
+
+  @Prop({ default: false })
+  isSecondTimer: boolean;
 
   @Prop({ type: Types.ObjectId, default: null })
   targetId: Types.ObjectId | null;

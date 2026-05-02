@@ -33,6 +33,30 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
   }
 
   /**
+   * Returns a chronological message thread for a specific contact target.
+   * Each entry shows the outbound sent message and the contact's reply,
+   * together with channel, delivery status, and timestamps.
+   */
+  async getConversation(targetId: string) {
+    const followUps = await this.followUpRepository.findByMember(targetId);
+    return followUps
+      .filter((f: any) => f.sentMessage || f.receivedMessage)
+      .map((f: any) => ({
+        followUpId: String(f._id),
+        contactName: f.contactName,
+        isFirstTimer: f.isFirstTimer ?? false,
+        isSecondTimer: f.isSecondTimer ?? false,
+        channel: f.channel,
+        sentMessage: f.sentMessage ?? null,
+        receivedMessage: f.receivedMessage ?? null,
+        deliveryStatus: f.deliveryStatus,
+        status: f.status,
+        sentAt: f.updatedAt,
+        createdAt: f.createdAt,
+      }));
+  }
+
+  /**
    * Send a WhatsApp or SMS for this follow-up.
    * On delivery success:
    *   - FollowUp.status → CONTACTED, deliveryStatus → sent

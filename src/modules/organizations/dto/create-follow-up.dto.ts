@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsMongoId,
@@ -11,13 +12,29 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class CreateFollowUpDto {
   @ApiPropertyOptional({
     example: 'first_timer',
-    enum: ['first_timer', 'member'],
+    enum: ['first_timer', 'second_timer', 'member'],
     description:
-      'Type of the contact this follow-up is for. Omit for ad-hoc follow-ups.',
+      'Visit category of the contact. Omit for ad-hoc follow-ups.',
   })
   @IsOptional()
-  @IsEnum(['first_timer', 'member'])
-  targetType?: 'first_timer' | 'member';
+  @IsEnum(['first_timer', 'second_timer', 'member'])
+  targetType?: 'first_timer' | 'second_timer' | 'member';
+
+  @ApiPropertyOptional({
+    example: true,
+    description: 'True when following up a first-time visitor.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isFirstTimer?: boolean;
+
+  @ApiPropertyOptional({
+    example: false,
+    description: 'True when following up a second-time visitor.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isSecondTimer?: boolean;
 
   @ApiPropertyOptional({
     example: '64a1f2c3e4b5d6e7f8a9b0c2',

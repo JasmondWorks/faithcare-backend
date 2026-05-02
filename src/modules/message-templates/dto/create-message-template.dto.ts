@@ -8,10 +8,6 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateMessageTemplateDto {
-  @ApiProperty({ example: '64f1a2b3c4d5e6f7a8b9c0d1' })
-  @IsString()
-  organizationId: string;
-
   @ApiProperty({ example: 'Welcome Message' })
   @IsString()
   name: string;

@@ -1,11 +1,7 @@
-import { IsMongoId, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateJournalEntryDto {
-  @ApiProperty({ example: '64a1f2c3e4b5d6e7f8a9b0c1' })
-  @IsMongoId()
-  userId: string;
-
   @ApiProperty({ example: 'Walking by Faith, Not by Sight' })
   @IsString()
   title: string;
