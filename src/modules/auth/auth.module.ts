@@ -8,6 +8,10 @@ import { AuthController } from './auth.controller';
 import { EmailService } from './services/email.service';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Otp, OtpSchema } from './schemas/otp.schema';
+import {
+  Organization,
+  OrganizationSchema,
+} from '../organizations/schemas/organization.schema';
 import { JwtStrategy } from 'src/core/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
 
@@ -24,6 +28,7 @@ import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Otp.name, schema: OtpSchema },
+      { name: Organization.name, schema: OrganizationSchema },
     ]),
   ],
   controllers: [AuthController],

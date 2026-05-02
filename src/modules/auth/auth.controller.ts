@@ -26,6 +26,12 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { InviteAdminDto } from './dto/invite-admin.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { Role } from 'src/core/enums/role.enum';
 
 const REFRESH_COOKIE = 'refresh_token';
 
@@ -217,6 +223,39 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'OTP is invalid or has expired' })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.email, dto.otp, dto.newPassword);
+  }
+
+  @ApiBearerAuth('access-token')
+  @Post('invite-admin')
+  @HttpCode(HttpStatus.CREATED)
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Invite a new admin to the platform (SUPER_ADMIN only)',
+    description:
+      'Creates an ADMIN account with isEmailVerified: true and isAdminVerified: true. ' +
+      'Sends a temporary password by email. On first login the frontend should redirect ' +
+      'to a change-password page based on isInvited: true in the JWT response.',
+  })
+  @ApiResponse({ status: 201, description: 'Invite sent' })
+  inviteAdmin(@Body() dto: InviteAdminDto, @CurrentUser() user: RequestUser) {
+    return this.authService.inviteAdmin(user.role, dto);
+  }
+
+  @ApiBearerAuth('access-token')
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Change password after being invited (clears isInvited flag)',
+    description:
+      'Used by invited admins on their first login. Sets the new password and marks isInvited: false ' +
+      'so the frontend no longer redirects to this page.',
+  })
+  @ApiResponse({ status: 200, description: 'Password updated' })
+  changePassword(
+    @Body() dto: ChangePasswordDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.authService.changePasswordForInvited(user.id, dto.newPassword);
   }
 
   @ApiBearerAuth('access-token')

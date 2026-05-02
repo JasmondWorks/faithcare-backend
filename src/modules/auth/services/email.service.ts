@@ -63,6 +63,32 @@ export class EmailService {
     }
   }
 
+  async sendAdminInvite(email: string, name: string, tempPassword: string) {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;background:#f4f7fb;margin:0;padding:40px 0;">
+          <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:40px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+            <h2 style="margin:0 0 8px;color:#0f1f35;">You've been invited to FaithCare 🎉</h2>
+            <p style="color:#555;">Hi ${name}, you've been added as an Admin on the FaithCare platform.</p>
+            <p style="color:#555;margin-bottom:4px;">Your temporary login credentials:</p>
+            <div style="background:#f0f6ff;border-radius:8px;padding:16px;margin-bottom:24px;">
+              <p style="margin:4px 0;color:#333;"><strong>Email:</strong> ${email}</p>
+              <p style="margin:4px 0;color:#333;"><strong>Temporary Password:</strong> <code style="font-size:16px;letter-spacing:2px;">${tempPassword}</code></p>
+            </div>
+            <p style="color:#888;font-size:13px;">You will be prompted to change your password after your first login. Do not share these credentials.</p>
+          </div>
+        </body>
+      </html>
+    `;
+    await this.transporter.sendMail({
+      from: this.config.get<string>('email.from'),
+      to: email,
+      subject: "You've been invited to FaithCare",
+      html,
+    });
+  }
+
   async sendWelcome(email: string, name: string) {
     const html = `
       <!DOCTYPE html>

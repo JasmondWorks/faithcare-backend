@@ -21,6 +21,7 @@ import { HealthModule } from './health/health.module';
 import { PrimeModule } from './modules/prime/prime.module';
 import { MessageTemplatesModule } from './modules/message-templates/message-templates.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AdminApplicationsModule } from './modules/admin-applications/admin-applications.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     HealthModule,
     PrimeModule,
     MessageTemplatesModule,
+    AdminApplicationsModule,
   ],
   controllers: [AppController],
   providers: [

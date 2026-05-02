@@ -43,7 +43,7 @@ async function bootstrap() {
     .setVersion('2.0')
     .addTag(
       'Authentication',
-      'Registration, login, Google OAuth, OTP verification, password reset, token refresh, logout',
+      'Registration, login, Google OAuth, OTP verification, password reset, token refresh, logout, super-admin invite',
     )
     .addTag(
       'Users',

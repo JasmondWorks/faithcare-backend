@@ -13,6 +13,10 @@ import * as bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
+import {
+  Organization,
+  OrganizationDocument,
+} from '../organizations/schemas/organization.schema';
 import { EmailService } from './services/email.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
@@ -25,6 +29,8 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Otp.name) private otpModel: Model<OtpDocument>,
+    @InjectModel(Organization.name)
+    private orgModel: Model<OrganizationDocument>,
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
@@ -62,6 +68,11 @@ export class AuthService {
       email: user.email,
       role: user.role,
       isEmailVerified: user.isEmailVerified,
+      isAdminVerified: user.isAdminVerified,
+      isInvited: user.isInvited,
+      pendingOrganizationId: user.pendingOrganizationId
+        ? String(user.pendingOrganizationId)
+        : null,
       createdAt: user.createdAt,
     };
   }
@@ -93,12 +104,16 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
+    // Admins start unverified — they must submit an AdminApplication and get approved
+    const isAdminVerified = role !== Role.ADMIN;
+
     const user = await this.userModel.create({
       name: dto.fullName,
       email: dto.email,
       password: hashedPassword,
       role,
       isEmailVerified: false,
+      isAdminVerified,
     });
 
     await this.createAndSendOtp(user.email, 'email_verification');
@@ -143,6 +158,39 @@ export class AuthService {
     }
 
     const { accessToken, refreshToken } = this.signTokens(user);
+
+    // Admin pending approval: let them log in but flag the status for the frontend
+    if (user.role === Role.ADMIN && !user.isAdminVerified) {
+      return {
+        success: true,
+        data: {
+          accessToken,
+          refreshToken,
+          tokenType: 'Bearer',
+          expiresIn: 28800,
+          user: this.userView(user),
+          message:
+            'Your account is pending verification by the organization administrator. ' +
+            'You will be notified once approved.',
+        },
+      };
+    }
+
+    // For verified admins, tell the frontend if they're the org creator
+    let adminOrgContext:
+      | { organizationId: string; isCreator: boolean }
+      | undefined;
+    if (user.role === Role.ADMIN && user.isAdminVerified) {
+      const ownedOrg = await this.orgModel.findOne({
+        createdBy: String(user._id),
+        isDeleted: false,
+      });
+      adminOrgContext = {
+        organizationId: ownedOrg ? String(ownedOrg._id) : '',
+        isCreator: !!ownedOrg,
+      };
+    }
+
     return {
       success: true,
       data: {
@@ -151,6 +199,7 @@ export class AuthService {
         tokenType: 'Bearer',
         expiresIn: 28800,
         user: this.userView(user),
+        ...(adminOrgContext ?? {}),
       },
     };
   }
@@ -337,5 +386,53 @@ export class AuthService {
     }
     await this.createAndSendOtp(dto.email, dto.type);
     return { success: true, message: 'OTP sent. Check your email.' };
+  }
+
+  // ── Super admin invite ─────────────────────────────────────────
+
+  async inviteAdmin(
+    inviterRole: string,
+    dto: { fullName: string; email: string },
+  ) {
+    if ((inviterRole as Role) !== Role.SUPER_ADMIN) {
+      throw new BadRequestException('Only SUPER_ADMIN can invite admins');
+    }
+
+    const existing = await this.userModel.findOne({ email: dto.email });
+    if (existing) throw new ConflictException('Email already registered');
+
+    const tempPassword =
+      Math.random().toString(36).slice(-10) +
+      Math.random().toString(36).slice(-4).toUpperCase();
+    const hashedPassword = await bcrypt.hash(tempPassword, 12);
+
+    await this.userModel.create({
+      name: dto.fullName,
+      email: dto.email,
+      password: hashedPassword,
+      role: Role.ADMIN,
+      isEmailVerified: true,
+      isAdminVerified: true,
+      isInvited: true,
+    });
+
+    await this.emailService.sendAdminInvite(
+      dto.email,
+      dto.fullName,
+      tempPassword,
+    );
+
+    return { success: true, message: `Invite sent to ${dto.email}` };
+  }
+
+  async changePasswordForInvited(userId: string, newPassword: string) {
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    const user = await this.userModel.findByIdAndUpdate(
+      userId,
+      { password: hashedPassword, isInvited: false },
+      { new: true },
+    );
+    if (!user) throw new NotFoundException('User not found');
+    return { success: true, message: 'Password updated successfully.' };
   }
 }
