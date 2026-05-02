@@ -15,10 +15,10 @@ export class FirstTimer extends BaseSchema {
   @Prop({ required: true })
   phoneNumber: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   email?: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   prayerRequest?: string;
 
   @Prop({
@@ -38,13 +38,13 @@ export class FirstTimer extends BaseSchema {
   })
   status: 'PENDING' | 'CONTACTED' | 'FOLLOWED_UP';
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   serviceDate?: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   notes?: string;
 
-  @Prop({ default: null })
+  @Prop({ type: Date, default: null })
   followUpScheduledAt?: Date;
 }
 

@@ -23,7 +23,7 @@ export class AdminApplication extends BaseSchema {
   @Prop({ type: [{ adminId: Types.ObjectId, approvedAt: Date }], default: [] })
   approvals: { adminId: Types.ObjectId; approvedAt: Date }[];
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   rejectionReason: string | null;
 
   @Prop({ required: true })

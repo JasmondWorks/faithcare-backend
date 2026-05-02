@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -25,7 +26,7 @@ export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
   @ApiOperation({
     summary: 'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)',
     description:
@@ -38,17 +39,19 @@ export class OrganizationController {
     return this.organizationService.createWithOwner(dto, user.id);
   }
 
-  @Get('slug/:slug')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Get()
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
   @ApiOperation({
-    summary: 'Search organizations by slug (ADMIN/SUPER_ADMIN only)',
+    summary: 'Search organizations (ADMIN/SUPER_ADMIN/USER)',
     description:
-      'Performs a partial (regex) match against the slug field. Returns an array of up to 20 matching organizations. ' +
-      'Useful for admins searching for an org to apply to.',
+      'If `slug` query param is provided, performs a partial (regex) match. Returns an array of up to 20 matching organizations.',
   })
-  @ApiResponse({ status: 200, description: 'Array of matching organizations (may be empty)' })
-  findBySlug(@Param('slug') slug: string) {
-    return this.organizationService.findBySlug(slug);
+  @ApiResponse({ status: 200, description: 'Array of matching organizations' })
+  findAll(@Query('slug') slug?: string) {
+    if (slug) {
+      return this.organizationService.findBySlug(slug);
+    }
+    return []; // Or return all if preferred: this.organizationService.findAll();
   }
 
   @Patch(':id')
@@ -80,7 +83,7 @@ export class OrganizationController {
   }
 
   @Get('mine')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
   @ApiOperation({
     summary: 'Get the organization associated with the authenticated admin',
     description:

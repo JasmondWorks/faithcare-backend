@@ -228,17 +228,17 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @Post('invite-admin')
   @HttpCode(HttpStatus.CREATED)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({
-    summary: 'Invite a new admin to the platform (SUPER_ADMIN only)',
+    summary: 'Invite a new admin to the platform or organization',
     description:
-      'Creates an ADMIN account with isEmailVerified: true and isAdminVerified: true. ' +
-      'Sends a temporary password by email. On first login the frontend should redirect ' +
-      'to a change-password page based on isInvited: true in the JWT response.',
+      'Creates an ADMIN account. If called by a SUPER_ADMIN, it creates a platform-level admin. ' +
+      'If called by an ADMIN, it creates an admin for their organization. ' +
+      'Sends a temporary password by email.',
   })
   @ApiResponse({ status: 201, description: 'Invite sent' })
   inviteAdmin(@Body() dto: InviteAdminDto, @CurrentUser() user: RequestUser) {
-    return this.authService.inviteAdmin(user.role, dto);
+    return this.authService.inviteAdmin(user, dto);
   }
 
   @ApiBearerAuth('access-token')

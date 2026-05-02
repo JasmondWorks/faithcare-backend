@@ -15,16 +15,16 @@ export class Member extends BaseSchema {
   @Prop({ required: true })
   phoneNumber: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   email: string | null;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   address: string | null;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   notes: string | null;
 
-  @Prop({ default: null })
+  @Prop({ type: Date, default: null })
   joinedAt: Date | null;
 
   @Prop({ type: String, enum: ['ACTIVE', 'INACTIVE'], default: 'ACTIVE' })

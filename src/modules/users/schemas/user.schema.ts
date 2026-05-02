@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { BaseSchema } from 'src/core/database/base.schema';
 import { Role } from 'src/core/enums/role.enum';
+import { OrganizationRole } from 'src/core/enums/organization-role.enum';
 
 export type UserDocument = User & Document;
 
@@ -53,6 +54,10 @@ export class User extends BaseSchema {
   /** True when a super_admin invited this user. Frontend redirects to change-password. */
   @Prop({ default: false })
   isInvited: boolean;
+
+  /** The specific role/title within an organization (e.g. Senior Pastor). */
+  @Prop({ type: String, enum: OrganizationRole, default: null })
+  organizationRole: OrganizationRole | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

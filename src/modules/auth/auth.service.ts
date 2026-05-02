@@ -19,6 +19,8 @@ import { UserLoginDto } from './dto/user-login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { Role } from 'src/core/enums/role.enum';
+import { RequestUser } from 'src/core/types/request-user.interface';
+import { InviteAdminDto } from './dto/invite-admin.dto';
 
 @Injectable()
 export class AuthService {
@@ -374,12 +376,15 @@ export class AuthService {
 
   // ── Super admin invite ─────────────────────────────────────────
 
-  async inviteAdmin(
-    inviterRole: string,
-    dto: { fullName: string; email: string },
-  ) {
-    if ((inviterRole as Role) !== Role.SUPER_ADMIN) {
-      throw new BadRequestException('Only SUPER_ADMIN can invite admins');
+  async inviteAdmin(inviter: RequestUser, dto: InviteAdminDto) {
+    if (inviter.role !== Role.SUPER_ADMIN && inviter.role !== Role.ADMIN) {
+      throw new BadRequestException('Not authorized to invite admins');
+    }
+
+    if (inviter.role === Role.ADMIN && !inviter.organizationId) {
+      throw new BadRequestException(
+        'Organization admin must be part of an organization to invite',
+      );
     }
 
     const existing = await this.userModel.findOne({ email: dto.email });
@@ -395,9 +400,12 @@ export class AuthService {
       email: dto.email,
       password: hashedPassword,
       role: Role.ADMIN,
+      organizationId: inviter.organizationId || null,
+      organizationRole: dto.organizationRole || null,
       isEmailVerified: true,
       isAdminVerified: true,
       isInvited: true,
+      isOnboarded: !!inviter.organizationId,
     });
 
     await this.emailService.sendAdminInvite(

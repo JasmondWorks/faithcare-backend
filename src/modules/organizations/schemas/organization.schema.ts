@@ -40,7 +40,7 @@ export class Organization extends BaseSchema {
   @Prop({ required: true })
   phoneNumber: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   websiteUrl?: string;
 
   @Prop({ type: String, enum: MemberCountRange, required: true })
@@ -48,7 +48,7 @@ export class Organization extends BaseSchema {
 
   // Base64 PNG data URI of the QR code for the first-timer registration page.
   // Encodes { organizationId, slug, name } so the public form can fetch org details.
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   firstTimerQrCode?: string;
 }
 

@@ -1,3 +1,4 @@
+console.log('main.ts module evaluation started');
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -7,7 +8,9 @@ import cookieParser from 'cookie-parser';
 import envConfig from './config/env.config';
 
 async function bootstrap() {
+  console.log('Bootstrapping application...');
   const app = await NestFactory.create(AppModule);
+  console.log('App created.');
 
   app.use(cookieParser());
 
@@ -134,4 +137,7 @@ async function bootstrap() {
     `OpenAPI JSON:             http://localhost:${port}/api/v1/docs-json\n`,
   );
 }
-void bootstrap();
+void bootstrap().catch((err) => {
+  console.error('Error during bootstrap:', err);
+  process.exit(1);
+});

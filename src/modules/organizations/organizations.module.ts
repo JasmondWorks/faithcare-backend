@@ -35,9 +35,9 @@ import { MemberService } from './services/member.service';
 import { OrganizationController } from './controllers/organization.controller';
 import { SalvationRecordController } from './controllers/salvation-record.controller';
 import { CommunityController } from './controllers/community.controller';
-import { PrayerRequestController } from './controllers/prayer-request.controller';
 import { FollowUpController } from './controllers/follow-up.controller';
 import { MemberController } from './controllers/member.controller';
+import { PrayerRequestController } from './controllers/prayer-request.controller';
 
 @Module({
   imports: [

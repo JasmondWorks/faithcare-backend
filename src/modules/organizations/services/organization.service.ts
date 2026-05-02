@@ -11,6 +11,7 @@ import { OrganizationDocument } from '../schemas/organization.schema';
 import { OrganizationRepository } from '../repositories/organization.repository';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { User, UserDocument } from 'src/modules/users/schemas/user.schema';
+import { Role } from 'src/core/enums/role.enum';
 
 @Injectable()
 export class OrganizationService extends BaseService<OrganizationDocument> {
@@ -63,6 +64,8 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     // Mark the creating admin as onboarded with their org
     await this.userModel.findByIdAndUpdate(createdByUserId, {
       organizationId: orgId,
+      organizationRole: dto.organizationRole,
+      role: Role.ADMIN,
       isOrgCreator: true,
       isOnboarded: true,
     });

@@ -77,10 +77,10 @@ export class FollowUp extends BaseSchema {
   })
   channel: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   sentMessage: string | null;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   receivedMessage: string | null;
 
   @Prop({

@@ -13,16 +13,16 @@ export class SalvationRecord extends BaseSchema {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   phoneNumber?: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   email?: string;
 
   @Prop({ required: true })
   decisionDate: string;
 
-  @Prop({ default: null })
+  @Prop({ type: String, default: null })
   notes?: string;
 
   @Prop({
