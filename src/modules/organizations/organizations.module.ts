@@ -19,6 +19,7 @@ import {
   FirstTimer,
   FirstTimerSchema,
 } from 'src/modules/first-timers/schemas/first-timer.schema';
+import { User, UserSchema } from 'src/modules/users/schemas/user.schema';
 import { OrganizationRepository } from './repositories/organization.repository';
 import { SalvationRecordRepository } from './repositories/salvation-record.repository';
 import { CommunityRepository } from './repositories/community.repository';
@@ -48,6 +49,7 @@ import { MemberController } from './controllers/member.controller';
       { name: FollowUp.name, schema: FollowUpSchema },
       { name: Member.name, schema: MemberSchema },
       { name: FirstTimer.name, schema: FirstTimerSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   controllers: [

@@ -7,9 +7,7 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
-  /** Present only in org-scoped tokens issued by switchOrganization() */
-  activeOrganizationId?: string;
-  activeOrganizationRole?: string;
+  organizationId?: string;
   iat?: number;
   exp?: number;
 }
@@ -31,8 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       id: payload.sub,
       email: payload.email,
       role: payload.role,
-      activeOrganizationId: payload.activeOrganizationId,
-      activeOrganizationRole: payload.activeOrganizationRole,
+      organizationId: payload.organizationId,
     };
   }
 }

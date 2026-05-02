@@ -13,10 +13,6 @@ import * as bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
-import {
-  Organization,
-  OrganizationDocument,
-} from '../organizations/schemas/organization.schema';
 import { EmailService } from './services/email.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
@@ -29,8 +25,6 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Otp.name) private otpModel: Model<OtpDocument>,
-    @InjectModel(Organization.name)
-    private orgModel: Model<OrganizationDocument>,
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
@@ -43,6 +37,9 @@ export class AuthService {
       sub: String(user._id),
       email: user.email,
       role: user.role,
+      organizationId: user.organizationId
+        ? String(user.organizationId)
+        : undefined,
     };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -69,7 +66,10 @@ export class AuthService {
       role: user.role,
       isEmailVerified: user.isEmailVerified,
       isAdminVerified: user.isAdminVerified,
+      isOnboarded: user.isOnboarded,
       isInvited: user.isInvited,
+      isOrgCreator: user.isOrgCreator,
+      organizationId: user.organizationId ? String(user.organizationId) : null,
       pendingOrganizationId: user.pendingOrganizationId
         ? String(user.pendingOrganizationId)
         : null,
@@ -176,21 +176,6 @@ export class AuthService {
       };
     }
 
-    // For verified admins, tell the frontend if they're the org creator
-    let adminOrgContext:
-      | { organizationId: string; isCreator: boolean }
-      | undefined;
-    if (user.role === Role.ADMIN && user.isAdminVerified) {
-      const ownedOrg = await this.orgModel.findOne({
-        createdBy: String(user._id),
-        isDeleted: false,
-      });
-      adminOrgContext = {
-        organizationId: ownedOrg ? String(ownedOrg._id) : '',
-        isCreator: !!ownedOrg,
-      };
-    }
-
     return {
       success: true,
       data: {
@@ -199,7 +184,6 @@ export class AuthService {
         tokenType: 'Bearer',
         expiresIn: 28800,
         user: this.userView(user),
-        ...(adminOrgContext ?? {}),
       },
     };
   }

@@ -1,26 +1,39 @@
 import {
-  Injectable,
   BadRequestException,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { BaseService } from 'src/core/services/base.service';
 import { UserMetaDataDocument } from '../schemas/user-metadata.schema';
 import { UserMetaDataRepository } from '../repositories/user-metadata.repository';
+import { User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
 export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
-  constructor(private userMetaDataRepository: UserMetaDataRepository) {
+  constructor(
+    private userMetaDataRepository: UserMetaDataRepository,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+  ) {
     super(userMetaDataRepository);
+  }
+
+  /** Creates metadata and marks the user as onboarded. */
+  async create(data: any): Promise<UserMetaDataDocument> {
+    const record = await super.create(data);
+    if (data.userId) {
+      await this.userModel.findByIdAndUpdate(data.userId, {
+        isOnboarded: true,
+      });
+    }
+    return record;
   }
 
   async findByUserId(userId: string) {
     return this.userMetaDataRepository.findByUserId(userId);
   }
 
-  /**
-   * Connect (or update) a user's church affiliation.
-   * Provide `organization` (ObjectId) for an existing org, or `churchName` for a custom entry.
-   */
   async connectToChurch(
     userId: string,
     dto: { organization?: string | null; churchName?: string | null },

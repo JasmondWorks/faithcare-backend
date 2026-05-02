@@ -22,15 +22,35 @@ export class User extends BaseSchema {
   @Prop({ default: false })
   isEmailVerified: boolean;
 
-  /** ADMIN accounts must be verified by the org creator or ≥2 existing admins before accessing the dashboard. */
+  /** ADMIN accounts must be verified by the org creator or ≥2 existing admins. */
   @Prop({ default: true })
   isAdminVerified: boolean;
 
-  /** Set when admin submits an organization application. Cleared on approval/rejection. */
+  /**
+   * For ADMINs: the organization they own or manage.
+   * Set when admin creates an org OR when their application is approved.
+   * Used to populate organizationId in the login response.
+   */
+  @Prop({ type: Types.ObjectId, ref: 'Organization', default: null })
+  organizationId: Types.ObjectId | null;
+
+  /** True when this admin created the organization (vs joined via application/invite). */
+  @Prop({ default: false })
+  isOrgCreator: boolean;
+
+  /**
+   * For individual USERs: true once their UserMetaData record is created.
+   * For ADMINs: true once organizationId is set.
+   * Frontend uses this to decide whether to show the onboarding flow.
+   */
+  @Prop({ default: false })
+  isOnboarded: boolean;
+
+  /** Set while admin's application is pending; cleared on approval/rejection. */
   @Prop({ type: Types.ObjectId, ref: 'Organization', default: null })
   pendingOrganizationId: Types.ObjectId | null;
 
-  /** True when a super_admin invited this user. Frontend redirects to change-password on first login. */
+  /** True when a super_admin invited this user. Frontend redirects to change-password. */
   @Prop({ default: false })
   isInvited: boolean;
 }

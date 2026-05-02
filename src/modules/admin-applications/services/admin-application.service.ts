@@ -122,6 +122,8 @@ export class AdminApplicationService {
       await this.userModel.findByIdAndUpdate(app.applicantId, {
         isAdminVerified: true,
         pendingOrganizationId: null,
+        organizationId: app.organizationId,
+        isOnboarded: true,
       });
       return {
         approved: true,

@@ -71,6 +71,19 @@ export class OrganizationController {
     return this.organizationService.softDelete(id);
   }
 
+  @Get('mine')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({
+    summary: 'Get the organization associated with the authenticated admin',
+    description:
+      "Returns full org details using the organizationId already present in the admin's login response. " +
+      'No path param needed — resolves from the JWT.',
+  })
+  getMyOrg(@CurrentUser() user: RequestUser) {
+    if (!user.organizationId) return null;
+    return this.organizationService.getMyOrganization(user.organizationId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get organization details by ID' })
   findOne(@Param('id') id: string) {

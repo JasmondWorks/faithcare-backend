@@ -3,15 +3,21 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import * as QRCode from 'qrcode';
 import { BaseService } from 'src/core/services/base.service';
 import { OrganizationDocument } from '../schemas/organization.schema';
 import { OrganizationRepository } from '../repositories/organization.repository';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
+import { User, UserDocument } from 'src/modules/users/schemas/user.schema';
 
 @Injectable()
 export class OrganizationService extends BaseService<OrganizationDocument> {
-  constructor(private organizationRepository: OrganizationRepository) {
+  constructor(
+    private organizationRepository: OrganizationRepository,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+  ) {
     super(organizationRepository);
   }
 
@@ -44,8 +50,8 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
       slug,
       createdBy: createdByUserId,
     });
-
     const orgId = String(org._id);
+
     const firstTimerQrCode = await this.generateFirstTimerQrCode(
       orgId,
       slug,
@@ -53,6 +59,13 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     );
     await this.organizationRepository.update(orgId, { firstTimerQrCode });
     org.firstTimerQrCode = firstTimerQrCode;
+
+    // Mark the creating admin as onboarded with their org
+    await this.userModel.findByIdAndUpdate(createdByUserId, {
+      organizationId: orgId,
+      isOrgCreator: true,
+      isOnboarded: true,
+    });
 
     return org;
   }
@@ -72,5 +85,11 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
 
   findBySlug(slug: string) {
     return this.organizationRepository.searchBySlug(slug);
+  }
+
+  async getMyOrganization(organizationId: string) {
+    const org = await this.organizationRepository.findById(organizationId);
+    if (!org) throw new NotFoundException('Organization not found');
+    return org;
   }
 }
