@@ -15,14 +15,14 @@ export class MessageLogRepository extends BaseRepository<MessageLogDocument> {
 
   async findByOrganization(organizationId: string) {
     return this.model
-      .find({ organizationId, isDeleted: false })
+      .find({ organizationId, isDeleted: { $ne: true } })
       .sort({ createdAt: -1 })
       .exec();
   }
 
   async findByFirstTimer(firstTimerId: string) {
     return this.model
-      .find({ firstTimerId, isDeleted: false })
+      .find({ firstTimerId, isDeleted: { $ne: true } })
       .sort({ createdAt: -1 })
       .exec();
   }

@@ -18,7 +18,7 @@ export class OrganizationUserSettingsRepository extends BaseRepository<Organizat
 
   async findByUserAndOrg(userId: string, organizationId: string) {
     return this.model
-      .findOne({ userId, organizationId, isDeleted: false })
+      .findOne({ userId, organizationId, isDeleted: { $ne: true } })
       .exec();
   }
 }

@@ -13,8 +13,21 @@ export class FirstTimerRepository extends BaseRepository<FirstTimerDocument> {
     super(firstTimerModel);
   }
 
-  async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: false }).exec();
+  async findByOrganization(
+    organizationId: string,
+    filters?: { status?: string; visitType?: string },
+  ) {
+    const query: Record<string, any> = {
+      organizationId,
+      isDeleted: { $ne: true },
+    };
+    if (filters?.status && filters.status !== 'all') {
+      query.status = filters.status;
+    }
+    if (filters?.visitType) {
+      query.visitType = filters.visitType;
+    }
+    return this.model.find(query).sort({ createdAt: -1 }).exec();
   }
 
   async findDueFollowUps() {
@@ -22,7 +35,7 @@ export class FirstTimerRepository extends BaseRepository<FirstTimerDocument> {
       .find({
         status: 'PENDING',
         followUpScheduledAt: { $lte: new Date() },
-        isDeleted: false,
+        isDeleted: { $ne: true },
       })
       .exec();
   }

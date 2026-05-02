@@ -17,6 +17,6 @@ export class SalvationRecordRepository extends BaseRepository<SalvationRecordDoc
   }
 
   async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: false }).exec();
+    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
   }
 }

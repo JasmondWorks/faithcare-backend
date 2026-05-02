@@ -10,12 +10,17 @@ import {
 import {
   ApiTags,
   ApiOperation,
+  ApiResponse,
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
 import { FirstTimerService } from '../services/first-timer.service';
 import { CreateFirstTimerDto } from '../dto/create-first-timer.dto';
 import { UpdateFirstTimerStatusDto } from '../dto/update-first-timer-status.dto';
+import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { Role } from 'src/core/enums/role.enum';
 
 @ApiTags('ChurchCare — First Timers')
 @Controller('church/first-timers')
@@ -26,68 +31,75 @@ export class FirstTimerController {
   @ApiOperation({
     summary: 'Submit first/second-timer registration — public endpoint',
   })
-  create(@Body() createDto: CreateFirstTimerDto) {
-    return this.firstTimerService.create({
+  async create(@Body() createDto: CreateFirstTimerDto) {
+    const data = await this.firstTimerService.create({
       ...createDto,
       followUpScheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // +3 days
     });
+    return { success: true, data };
   }
 
   @Get()
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary: 'Paginated list of all first timers — Admin JWT required',
+    summary: "List first timers for the authenticated admin's org (ADMIN only)",
   })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({
     name: 'status',
     required: false,
     enum: ['PENDING', 'CONTACTED', 'FOLLOWED_UP', 'all'],
+    description: 'Filter by follow-up status',
   })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'from_date', required: false, type: String })
-  @ApiQuery({ name: 'to_date', required: false, type: String })
   @ApiQuery({
     name: 'visit_type',
     required: false,
     enum: ['first_time', 'second_time'],
+    description: 'Filter by visit type',
   })
-  findAll(
-    @Query('organizationId') organizationId: string,
-    @Query('page') _page?: number,
-    @Query('limit') _limit?: number,
-    @Query('status') _status?: string,
-    @Query('visit_type') _visitType?: string,
+  @ApiResponse({ status: 200, description: 'List of first timers' })
+  async findAll(
+    @CurrentUser() user: RequestUser,
+    @Query('status') status?: string,
+    @Query('visit_type') visitType?: string,
   ) {
-    return this.firstTimerService.findByOrganization(organizationId);
+    const data = await this.firstTimerService.findByOrganization(
+      user.organizationId!,
+      { status, visitType },
+    );
+    return { success: true, data };
   }
 
   @Get('export')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Export first timer records as CSV or Excel file' })
+  @ApiBearerAuth('access-token')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Export first timer records (ADMIN only — coming soon)' })
   @ApiQuery({ name: 'format', required: false, enum: ['csv', 'xlsx'] })
-  export(@Query('organizationId') _organizationId: string) {
-    // CSV/Excel export — to be implemented with a file generation library
+  export(@CurrentUser() _user: RequestUser) {
     return { message: 'Export feature coming soon' };
   }
 
   @Get(':id')
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Get full details of a specific first timer record',
-  })
-  findOne(@Param('id') id: string) {
-    return this.firstTimerService.findById(id);
+  @ApiBearerAuth('access-token')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Get full details of a specific first timer record (ADMIN only)' })
+  @ApiResponse({ status: 200, description: 'First timer record' })
+  @ApiResponse({ status: 404, description: 'Not found' })
+  async findOne(@Param('id') id: string) {
+    const data = await this.firstTimerService.findById(id);
+    return { success: true, data };
   }
 
   @Patch(':id/status')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Toggle follow-up status and add contact notes' })
-  updateStatus(
+  @ApiBearerAuth('access-token')
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Update follow-up status and contact notes (ADMIN only)' })
+  @ApiResponse({ status: 200, description: 'Updated record' })
+  async updateStatus(
     @Param('id') id: string,
     @Body() updateStatusDto: UpdateFirstTimerStatusDto,
   ) {
-    return this.firstTimerService.update(id, updateStatusDto);
+    const data = await this.firstTimerService.update(id, updateStatusDto);
+    return { success: true, data };
   }
 }

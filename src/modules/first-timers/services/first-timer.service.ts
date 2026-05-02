@@ -27,8 +27,11 @@ export class FirstTimerService extends BaseService<FirstTimerDocument> {
     return record;
   }
 
-  async findByOrganization(organizationId: string) {
-    return this.firstTimerRepository.findByOrganization(organizationId);
+  async findByOrganization(
+    organizationId: string,
+    filters?: { status?: string; visitType?: string },
+  ) {
+    return this.firstTimerRepository.findByOrganization(organizationId, filters);
   }
 
   async findDueFollowUps() {

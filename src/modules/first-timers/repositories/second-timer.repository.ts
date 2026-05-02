@@ -17,10 +17,10 @@ export class SecondTimerRepository extends BaseRepository<SecondTimerDocument> {
   }
 
   async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: false }).exec();
+    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
   }
 
   async findByFirstTimer(firstTimerId: string) {
-    return this.model.find({ firstTimerId, isDeleted: false }).exec();
+    return this.model.find({ firstTimerId, isDeleted: { $ne: true } }).exec();
   }
 }

@@ -6,14 +6,8 @@ import {
   Put,
   Param,
   Delete,
-  Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JournalEntryService } from '../services/journal-entry.service';
 import { CreateJournalEntryDto } from '../dto/create-journal-entry.dto';
 import { UpdateJournalEntryDto } from '../dto/update-journal-entry.dto';
@@ -44,17 +38,7 @@ export class JournalEntryController {
   @ApiOperation({
     summary: "List the authenticated user's journal entries (USER only)",
   })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'sort', required: false, enum: ['asc', 'desc'] })
-  findByUser(
-    @CurrentUser() user: RequestUser,
-    @Query('page') _page?: number,
-    @Query('limit') _limit?: number,
-    @Query('search') _search?: string,
-    @Query('sort') _sort?: 'asc' | 'desc',
-  ) {
+  findByUser(@CurrentUser() user: RequestUser) {
     return this.journalEntryService.findByUser(user.id);
   }
 

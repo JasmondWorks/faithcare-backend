@@ -12,7 +12,7 @@ export class MemberRepository extends BaseRepository<MemberDocument> {
 
   findByOrganization(organizationId: string) {
     return this.model
-      .find({ organizationId, isDeleted: false })
+      .find({ organizationId, isDeleted: { $ne: true } })
       .sort({ name: 1 })
       .exec();
   }
@@ -21,7 +21,7 @@ export class MemberRepository extends BaseRepository<MemberDocument> {
     return this.model
       .find({
         organizationId,
-        isDeleted: false,
+        isDeleted: { $ne: true },
         name: { $regex: query, $options: 'i' },
       })
       .limit(20)

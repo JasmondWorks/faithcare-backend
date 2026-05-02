@@ -27,11 +27,12 @@ export class SalvationRecordController {
   @ApiOperation({
     summary: 'Record a salvation decision (ADMIN/SUPER_ADMIN only)',
   })
-  create(
+  async create(
     @Param('organizationId') organizationId: string,
     @Body() createDto: CreateSalvationRecordDto,
   ) {
-    return this.salvationRecordService.create({ ...createDto, organizationId });
+    const data = await this.salvationRecordService.create({ ...createDto, organizationId });
+    return { success: true, data };
   }
 
   @Get()
@@ -39,31 +40,35 @@ export class SalvationRecordController {
     summary:
       'List all salvation records for the organization (ADMIN/SUPER_ADMIN only)',
   })
-  findByOrganization(@Param('organizationId') organizationId: string) {
-    return this.salvationRecordService.findByOrganization(organizationId);
+  async findByOrganization(@Param('organizationId') organizationId: string) {
+    const data = await this.salvationRecordService.findByOrganization(organizationId);
+    return { success: true, data };
   }
 
   @Get(':id')
   @ApiOperation({
     summary: 'Get a salvation record by ID (ADMIN/SUPER_ADMIN only)',
   })
-  findOne(@Param('id') id: string) {
-    return this.salvationRecordService.findById(id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.salvationRecordService.findById(id);
+    return { success: true, data };
   }
 
   @Patch(':id')
   @ApiOperation({
     summary: 'Update a salvation record (ADMIN/SUPER_ADMIN only)',
   })
-  update(@Param('id') id: string, @Body() updateDto: UpdateSalvationRecordDto) {
-    return this.salvationRecordService.update(id, updateDto);
+  async update(@Param('id') id: string, @Body() updateDto: UpdateSalvationRecordDto) {
+    const data = await this.salvationRecordService.update(id, updateDto);
+    return { success: true, data };
   }
 
   @Delete(':id')
   @ApiOperation({
     summary: 'Delete a salvation record (ADMIN/SUPER_ADMIN only)',
   })
-  delete(@Param('id') id: string) {
-    return this.salvationRecordService.delete(id);
+  async delete(@Param('id') id: string) {
+    await this.salvationRecordService.delete(id);
+    return { success: true };
   }
 }

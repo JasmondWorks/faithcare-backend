@@ -38,8 +38,9 @@ export class AdminApplicationController {
   @ApiResponse({ status: 403, description: 'Only ADMIN accounts can apply' })
   @ApiResponse({ status: 404, description: 'User or organization not found' })
   @ApiResponse({ status: 409, description: 'A pending application already exists' })
-  apply(@Body() dto: CreateApplicationDto, @CurrentUser() user: RequestUser) {
-    return this.service.apply(user.id, dto.organizationId);
+  async apply(@Body() dto: CreateApplicationDto, @CurrentUser() user: RequestUser) {
+    const data = await this.service.apply(user.id, dto.organizationId);
+    return { success: true, data };
   }
 
   @Get('mine')
@@ -48,8 +49,9 @@ export class AdminApplicationController {
     description: 'Returns the current application record for the authenticated admin, or null if none exists.',
   })
   @ApiResponse({ status: 200, description: 'Application record (or null)' })
-  getMyApplication(@CurrentUser() user: RequestUser) {
-    return this.service.getMyApplication(user.id);
+  async getMyApplication(@CurrentUser() user: RequestUser) {
+    const data = await this.service.getMyApplication(user.id);
+    return { success: true, data };
   }
 
   @Get('organization/:organizationId')
@@ -59,11 +61,12 @@ export class AdminApplicationController {
   })
   @ApiResponse({ status: 200, description: 'List of pending applications' })
   @ApiResponse({ status: 403, description: 'Not the org creator or SUPER_ADMIN' })
-  listForOrg(
+  async listForOrg(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: RequestUser,
   ) {
-    return this.service.listForOrganization(organizationId, user.id, user.role);
+    const data = await this.service.listForOrganization(organizationId, user.id, user.role);
+    return { success: true, data };
   }
 
   @Post(':id/approve')

@@ -17,12 +17,12 @@ export class OrganizationRepository extends BaseRepository<OrganizationDocument>
   }
 
   async findByCreator(createdBy: string) {
-    return this.model.find({ createdBy, isDeleted: false }).exec();
+    return this.model.find({ createdBy, isDeleted: { $ne: true } }).exec();
   }
 
   async searchBySlug(slug: string) {
     return this.model
-      .find({ slug: { $regex: slug, $options: 'i' }, isDeleted: false })
+      .find({ slug: { $regex: slug, $options: 'i' }, isDeleted: { $ne: true } })
       .limit(20)
       .exec();
   }

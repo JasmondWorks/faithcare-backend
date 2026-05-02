@@ -12,6 +12,8 @@ export default () => ({
     refreshSecret: requireEnv('REFRESH_SECRET'),
     accessExpiresIn: requireEnv('JWT_ACCESS_TOKEN_EXPIRES_IN'),
     refreshExpiresIn: requireEnv('JWT_REFRESH_TOKEN_EXPIRES_IN'),
+    inviteSecret: process.env.JWT_INVITE_SECRET ?? requireEnv('ACCESS_SECRET'),
+    inviteExpiresIn: process.env.JWT_INVITE_EXPIRES_IN ?? '7d',
   },
 
   email: {

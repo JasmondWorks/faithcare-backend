@@ -18,12 +18,12 @@ export class DailyScriptureRepository extends BaseRepository<DailyScriptureDocum
 
   async findByUser(userId: string) {
     return this.model
-      .find({ userId, isDeleted: false })
+      .find({ userId, isDeleted: { $ne: true } })
       .sort({ date: -1 })
       .exec();
   }
 
   async findByUserAndDate(userId: string, date: Date) {
-    return this.model.findOne({ userId, date, isDeleted: false }).exec();
+    return this.model.findOne({ userId, date, isDeleted: { $ne: true } }).exec();
   }
 }

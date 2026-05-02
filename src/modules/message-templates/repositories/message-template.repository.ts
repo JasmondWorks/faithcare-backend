@@ -17,7 +17,7 @@ export class MessageTemplateRepository extends BaseRepository<MessageTemplateDoc
 
   findByOrganization(organizationId: string) {
     return this.model
-      .find({ $or: [{ organizationId, isDeleted: false }, { isPreset: true }] })
+      .find({ $or: [{ organizationId, isDeleted: { $ne: true } }, { isPreset: true }] })
       .sort({ isPreset: -1, createdAt: -1 })
       .exec();
   }
@@ -31,7 +31,7 @@ export class MessageTemplateRepository extends BaseRepository<MessageTemplateDoc
 
   findByOrgAndId(organizationId: string, id: string) {
     return this.model
-      .findOne({ _id: id, organizationId, isDeleted: false })
+      .findOne({ _id: id, organizationId, isDeleted: { $ne: true } })
       .exec();
   }
 

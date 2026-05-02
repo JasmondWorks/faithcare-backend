@@ -9,15 +9,15 @@ export abstract class BaseRepository<T> {
   }
 
   async findAll(filter: any = {}): Promise<T[]> {
-    return this.model.find({ ...filter, isDeleted: false }).exec();
+    return this.model.find({ ...filter, isDeleted: { $ne: true } }).exec();
   }
 
   async findOne(filter: any): Promise<T | null> {
-    return this.model.findOne({ ...filter, isDeleted: false }).exec();
+    return this.model.findOne({ ...filter, isDeleted: { $ne: true } }).exec();
   }
 
   async findById(id: string): Promise<T | null> {
-    return this.model.findOne({ _id: id, isDeleted: false } as any).exec();
+    return this.model.findById(id).where({ isDeleted: { $ne: true } }).exec();
   }
 
   async update(id: string, update: UpdateQuery<T>): Promise<T | null> {
@@ -66,11 +66,11 @@ export abstract class BaseRepository<T> {
 
     const [data, total] = await Promise.all([
       this.model
-        .find({ ...filter, isDeleted: false })
+        .find({ ...filter, isDeleted: { $ne: true } })
         .skip(skip)
         .limit(limit)
         .exec(),
-      this.model.countDocuments({ ...filter, isDeleted: false }),
+      this.model.countDocuments({ ...filter, isDeleted: { $ne: true } }),
     ]);
 
     return {

@@ -14,12 +14,12 @@ export class CommunityRepository extends BaseRepository<CommunityDocument> {
   }
 
   async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: false }).exec();
+    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
   }
 
   async findByUserInOrg(userId: string, organizationId: string) {
     return this.model
-      .find({ organizationId, members: userId, isDeleted: false })
+      .find({ organizationId, members: userId, isDeleted: { $ne: true } })
       .exec();
   }
 

@@ -27,7 +27,8 @@ import { ResendOtpDto } from './dto/resend-otp.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { InviteAdminDto } from './dto/invite-admin.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
+import { VerifyInviteDto } from './dto/verify-invite.dto';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { RequestUser } from 'src/core/types/request-user.interface';
 import { Roles } from 'src/core/decorators/roles.decorator';
@@ -230,32 +231,67 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiOperation({
-    summary: 'Invite a new admin to the platform or organization',
+    summary: 'Invite a new admin (SUPER_ADMIN or org ADMIN)',
     description:
-      'Creates an ADMIN account. If called by a SUPER_ADMIN, it creates a platform-level admin. ' +
-      'If called by an ADMIN, it creates an admin for their organization. ' +
-      'Sends a temporary password by email.',
+      'Creates an ADMIN account with no usable password and sends an invitation link to the provided email. ' +
+      'The invited admin follows the link to `POST /auth/invite/accept` where they set their own password. ' +
+      'SUPER_ADMIN invites are platform-wide; org ADMINs can invite into their own organization.',
   })
-  @ApiResponse({ status: 201, description: 'Invite sent' })
+  @ApiResponse({ status: 201, description: 'Invitation email sent' })
+  @ApiResponse({ status: 409, description: 'Email already registered' })
   inviteAdmin(@Body() dto: InviteAdminDto, @CurrentUser() user: RequestUser) {
     return this.authService.inviteAdmin(user, dto);
   }
 
-  @ApiBearerAuth('access-token')
-  @Post('change-password')
+  @Public()
+  @Post('invite/verify')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Change password after being invited (clears isInvited flag)',
+    summary: 'Validate an invitation token before showing the set-password page',
     description:
-      'Used by invited admins on their first login. Sets the new password and marks isInvited: false ' +
-      'so the frontend no longer redirects to this page.',
+      'Called immediately after the invited admin clicks the email link. ' +
+      'Checks that the token is still valid and the invitation has not already been used. ' +
+      'On success, returns the admin\'s `name` and `email` so the frontend can personalise ' +
+      'the set-password form. If this call succeeds, redirect to the set-password page and ' +
+      'call `POST /auth/invite/accept` with the same token once the admin submits.',
   })
-  @ApiResponse({ status: 200, description: 'Password updated' })
-  changePassword(
-    @Body() dto: ChangePasswordDto,
-    @CurrentUser() user: RequestUser,
+  @ApiResponse({
+    status: 200,
+    description: 'Token is valid — { name, email } returned',
+  })
+  @ApiResponse({ status: 400, description: 'Token is invalid or has expired' })
+  @ApiResponse({ status: 404, description: 'Invitation already used or not found' })
+  verifyInvite(@Body() dto: VerifyInviteDto) {
+    return this.authService.verifyInvite(dto.token);
+  }
+
+  @Public()
+  @Post('invite/accept')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Accept an invitation and set a password',
+    description:
+      'Called from the invitation link sent to the admin\'s email. ' +
+      'Verifies the invite token, sets the chosen password, and returns a full auth response ' +
+      'so the frontend can log the user in immediately — no separate login step required. ' +
+      'The token expires 7 days after the invitation was sent.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password set — access and refresh tokens returned',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invitation link is invalid or has expired',
+  })
+  @ApiResponse({ status: 404, description: 'Invitation already used or not found' })
+  async acceptInvite(
+    @Body() dto: AcceptInviteDto,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.changePasswordForInvited(user.id, dto.newPassword);
+    const result = await this.authService.acceptInvite(dto.token, dto.password);
+    res.cookie(REFRESH_COOKIE, result.data.refreshToken, COOKIE_OPTIONS);
+    return result;
   }
 
   @ApiBearerAuth('access-token')

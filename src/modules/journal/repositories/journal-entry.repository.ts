@@ -18,7 +18,7 @@ export class JournalEntryRepository extends BaseRepository<JournalEntryDocument>
 
   async findByUser(userId: string) {
     return this.model
-      .find({ userId, isDeleted: false })
+      .find({ userId, isDeleted: { $ne: true } })
       .sort({ createdAt: -1 })
       .exec();
   }

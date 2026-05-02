@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git commit -m ' *)",
       "Bash(git merge *)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(xargs sed *)"
     ]
   }
 }

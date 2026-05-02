@@ -10,7 +10,13 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { OrganizationService } from '../services/organization.service';
 import { CreateOrganizationDto } from '../dto/create-organization.dto';
 import { UpdateOrganizationDto } from '../dto/update-organization.dto';
@@ -26,32 +32,47 @@ export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
-    summary: 'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)',
+    summary:
+      'Create a new organization — caller becomes the OWNER (ADMIN/SUPER_ADMIN only)',
     description:
       'Creates the organization and generates a first-timer QR code. ' +
       'Sets `organizationId`, `isOrgCreator: true`, and `isOnboarded: true` on the authenticated admin.',
   })
   @ApiResponse({ status: 201, description: 'Organization created' })
   @ApiResponse({ status: 409, description: 'Slug already taken' })
-  create(@Body() dto: CreateOrganizationDto, @CurrentUser() user: RequestUser) {
-    return this.organizationService.createWithOwner(dto, user.id);
+  async create(
+    @Body() dto: CreateOrganizationDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    const data = await this.organizationService.createWithOwner(dto, user.id);
+    return { success: true, data };
   }
 
   @Get()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
   @ApiOperation({
-    summary: 'Search organizations (ADMIN/SUPER_ADMIN/USER)',
+    summary: 'Search organizations by slug',
     description:
-      'If `slug` query param is provided, performs a partial (regex) match. Returns an array of up to 20 matching organizations.',
+      'Performs a partial (regex) match against the slug field. Returns an array of up to 20 matching organizations. Used by admins and users searching for a church.',
   })
-  @ApiResponse({ status: 200, description: 'Array of matching organizations' })
-  findAll(@Query('slug') slug?: string) {
+  @ApiQuery({
+    name: 'slug',
+    required: false,
+    type: String,
+    description: 'Partial or full slug to search for, e.g. "prime-church"',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Array of matching organizations (empty if no slug provided)',
+  })
+  async findAll(@Query('slug') slug?: string) {
+    let data: any[] = [];
     if (slug) {
-      return this.organizationService.findBySlug(slug);
+      data = await this.organizationService.findBySlug(slug);
     }
-    return []; // Or return all if preferred: this.organizationService.findAll();
+    return { success: true, data };
   }
 
   @Patch(':id')
@@ -59,8 +80,9 @@ export class OrganizationController {
   @ApiOperation({
     summary: 'Update organization details (ADMIN/SUPER_ADMIN only)',
   })
-  update(@Param('id') id: string, @Body() dto: UpdateOrganizationDto) {
-    return this.organizationService.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateOrganizationDto) {
+    const data = await this.organizationService.update(id, dto);
+    return { success: true, data };
   }
 
   @Post(':id/qr-code/regenerate')
@@ -68,8 +90,9 @@ export class OrganizationController {
   @ApiOperation({
     summary: 'Regenerate the first-timer QR code (ADMIN/SUPER_ADMIN only)',
   })
-  regenerateQrCode(@Param('id') id: string) {
-    return this.organizationService.regenerateQrCode(id);
+  async regenerateQrCode(@Param('id') id: string) {
+    const data = await this.organizationService.regenerateQrCode(id);
+    return { success: true, data };
   }
 
   @Delete(':id')
@@ -78,12 +101,13 @@ export class OrganizationController {
   @ApiOperation({
     summary: 'Soft-delete an organization (ADMIN/SUPER_ADMIN only)',
   })
-  delete(@Param('id') id: string) {
-    return this.organizationService.softDelete(id);
+  async delete(@Param('id') id: string) {
+    await this.organizationService.softDelete(id);
+    return { success: true };
   }
 
   @Get('mine')
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiOperation({
     summary: 'Get the organization associated with the authenticated admin',
     description:
@@ -91,14 +115,18 @@ export class OrganizationController {
       'No path parameter needed. Returns `null` if the admin has no organization yet.',
   })
   @ApiResponse({ status: 200, description: 'Organization record (or null)' })
-  getMyOrg(@CurrentUser() user: RequestUser) {
-    if (!user.organizationId) return null;
-    return this.organizationService.getMyOrganization(user.organizationId);
+  async getMyOrg(@CurrentUser() user: RequestUser) {
+    const org = await this.organizationService.getMyOrganization(
+      user.organizationId,
+      user.id,
+    );
+    return { success: true, data: org };
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get organization details by ID' })
-  findOne(@Param('id') id: string) {
-    return this.organizationService.findById(id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.organizationService.findById(id);
+    return { success: true, data };
   }
 }

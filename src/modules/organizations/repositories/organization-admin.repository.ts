@@ -17,10 +17,10 @@ export class OrganizationAdminRepository extends BaseRepository<OrganizationAdmi
   }
 
   async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: false }).exec();
+    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
   }
 
   async findByUser(userId: string) {
-    return this.model.find({ userId, isDeleted: false }).exec();
+    return this.model.find({ userId, isDeleted: { $ne: true } }).exec();
   }
 }

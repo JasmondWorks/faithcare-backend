@@ -17,14 +17,14 @@ export class AdminApplicationRepository extends BaseRepository<AdminApplicationD
 
   findByApplicant(applicantId: string) {
     return this.model
-      .findOne({ applicantId, isDeleted: false })
+      .findOne({ applicantId, isDeleted: { $ne: true } })
       .populate('organizationId')
       .exec();
   }
 
   findByOrganization(organizationId: string) {
     return this.model
-      .find({ organizationId, status: 'PENDING', isDeleted: false })
+      .find({ organizationId, status: 'PENDING', isDeleted: { $ne: true } })
       .populate('applicantId', 'name email createdAt')
       .sort({ createdAt: -1 })
       .exec();
@@ -35,7 +35,7 @@ export class AdminApplicationRepository extends BaseRepository<AdminApplicationD
       .find({
         status: 'PENDING',
         expiresAt: { $lte: new Date() },
-        isDeleted: false,
+        isDeleted: { $ne: true },
       })
       .exec();
   }

@@ -14,10 +14,10 @@ export class FollowUpRepository extends BaseRepository<FollowUpDocument> {
   }
 
   async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: false }).exec();
+    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
   }
 
   async findByMember(newMemberId: string) {
-    return this.model.find({ newMemberId, isDeleted: false }).exec();
+    return this.model.find({ newMemberId, isDeleted: { $ne: true } }).exec();
   }
 }

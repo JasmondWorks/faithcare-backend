@@ -90,9 +90,17 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     return this.organizationRepository.searchBySlug(slug);
   }
 
-  async getMyOrganization(organizationId: string) {
-    const org = await this.organizationRepository.findById(organizationId);
-    if (!org) throw new NotFoundException('Organization not found');
-    return org;
+  async getMyOrganization(organizationId: string | undefined, userId: string) {
+    let id = organizationId;
+
+    // Fallback: if JWT is stale (e.g. right after onboarding), check the database
+    if (!id || id === 'null' || id === 'undefined') {
+      const user = await this.userModel.findById(userId).exec();
+      id = user?.organizationId?.toString();
+    }
+
+    if (!id || id === 'null' || id === 'undefined') return null;
+
+    return this.organizationRepository.findById(id);
   }
 }

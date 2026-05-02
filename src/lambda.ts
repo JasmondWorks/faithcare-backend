@@ -58,15 +58,25 @@ async function bootstrap(): Promise<void> {
     .setVersion('2.0')
     .addTag(
       'Authentication',
-      'Registration, login, Google OAuth, OTP verification, password reset, token refresh, logout, super-admin invite',
+      'Registration, login, Google OAuth, OTP verification, password reset, token refresh, logout. ' +
+      'Admin invite flow: POST /auth/invite-admin → invited admin receives a link → ' +
+      'POST /auth/invite/verify (validate token, get name/email) → POST /auth/invite/accept (set password, returns auth tokens)',
     )
     .addTag(
       'Users',
       'User profile management (admin CRUD + self GET /users/me)',
     )
     .addTag(
+      'Users — Metadata',
+      'Individual user metadata: spiritual goals, church affiliation, and profile extras (USER only)',
+    )
+    .addTag(
+      'Users — Organization Settings',
+      'Per-user settings scoped to a specific organization (ADMIN/SUPER_ADMIN only)',
+    )
+    .addTag(
       'Organization',
-      'Create and manage church organizations; QR code regeneration',
+      'Create and manage church organizations; QR code regeneration; slug search',
     )
     .addTag(
       'Organization — Members',
@@ -75,6 +85,14 @@ async function bootstrap(): Promise<void> {
     .addTag(
       'Organization — Communities',
       'Community groups within an org; admin-managed member lists',
+    )
+    .addTag(
+      'Organization — Salvation Records',
+      'Records of salvation decisions made during services; managed by org admins',
+    )
+    .addTag(
+      'Organization — Prayer Requests',
+      'Prayer requests submitted by users; reviewed and actioned by org admins',
     )
     .addTag(
       'ChurchCare — First Timers',
