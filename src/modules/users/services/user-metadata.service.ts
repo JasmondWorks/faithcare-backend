@@ -59,13 +59,13 @@ export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
     await this.userMetaDataRepository.update(String(metadata._id), update);
     return this.userMetaDataRepository.findByUserId(userId);
   }
-  async delete(id: string): Promise<boolean> {
+  async deleteMetadata(id: string): Promise<boolean> {
     const metadata = await this.userMetaDataRepository.findById(id);
     if (metadata && metadata.userId) {
       await this.userModel.findByIdAndUpdate(metadata.userId, {
         isOnboarded: false,
       });
     }
-    return super.delete(id);
+    return super.delete(id) as any;
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { BaseService } from 'src/core/services/base.service';
 import { UserDocument } from '../schemas/user.schema';
 import { UsersRepository } from '../repositories/user.repository';
+import { Role } from 'src/core/enums/role.enum';
 
 @Injectable()
 export class UsersService extends BaseService<UserDocument> {
