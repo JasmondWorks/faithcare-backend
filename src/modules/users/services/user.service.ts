@@ -15,6 +15,12 @@ export class UsersService extends BaseService<UserDocument> {
     const raw = user.toObject() as Record<string, unknown>;
     const { password: _pw, ...profile } = raw;
     void _pw;
+
+    // Calculate dynamic onboarding status
+    if (user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) {
+      profile.isOnboarded = !!user.organizationId;
+    }
+
     return { success: true, data: profile };
   }
 

@@ -8,6 +8,7 @@ import {
   HttpStatus,
   UnauthorizedException,
   ForbiddenException,
+  Get,
 } from '@nestjs/common';
 import { Request, Response, CookieOptions } from 'express';
 import {
@@ -243,15 +244,32 @@ export class AuthController {
     return this.authService.inviteAdmin(user, dto);
   }
 
+  @ApiBearerAuth('access-token')
+  @Get('invitations')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Get all invitations for an organization (ADMIN/SUPER_ADMIN only)',
+  })
+  getInvitations(@CurrentUser() user: RequestUser) {
+    if (user.role === Role.ADMIN && !user.organizationId) {
+      return { success: true, data: [] };
+    }
+    // For SUPER_ADMIN, we might want to return all or filter by query.
+    // For now, if no orgId in user, return all if SUPER_ADMIN?
+    // Usually, this is called from an org dashboard.
+    return this.authService.getInvitationsByOrg(user.organizationId as string);
+  }
+
   @Public()
   @Post('invite/verify')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Validate an invitation token before showing the set-password page',
+    summary:
+      'Validate an invitation token before showing the set-password page',
     description:
       'Called immediately after the invited admin clicks the email link. ' +
       'Checks that the token is still valid and the invitation has not already been used. ' +
-      'On success, returns the admin\'s `name` and `email` so the frontend can personalise ' +
+      "On success, returns the admin's `name` and `email` so the frontend can personalise " +
       'the set-password form. If this call succeeds, redirect to the set-password page and ' +
       'call `POST /auth/invite/accept` with the same token once the admin submits.',
   })
@@ -260,7 +278,10 @@ export class AuthController {
     description: 'Token is valid — { name, email } returned',
   })
   @ApiResponse({ status: 400, description: 'Token is invalid or has expired' })
-  @ApiResponse({ status: 404, description: 'Invitation already used or not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Invitation already used or not found',
+  })
   verifyInvite(@Body() dto: VerifyInviteDto) {
     return this.authService.verifyInvite(dto.token);
   }
@@ -271,7 +292,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Accept an invitation and set a password',
     description:
-      'Called from the invitation link sent to the admin\'s email. ' +
+      "Called from the invitation link sent to the admin's email. " +
       'Verifies the invite token, sets the chosen password, and returns a full auth response ' +
       'so the frontend can log the user in immediately — no separate login step required. ' +
       'The token expires 7 days after the invitation was sent.',
@@ -284,7 +305,10 @@ export class AuthController {
     status: 400,
     description: 'Invitation link is invalid or has expired',
   })
-  @ApiResponse({ status: 404, description: 'Invitation already used or not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Invitation already used or not found',
+  })
   async acceptInvite(
     @Body() dto: AcceptInviteDto,
     @Res({ passthrough: true }) res: Response,

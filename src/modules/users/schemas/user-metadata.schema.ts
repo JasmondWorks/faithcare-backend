@@ -36,8 +36,8 @@ export class UserMetaData extends BaseSchema {
   @Prop({ type: String, default: null })
   churchName: string | null;
 
-  @Prop({ type: [Object], default: null })
-  spiritualGoals?: SpiritualGoals[] | null;
+  @Prop({ type: Object, default: null })
+  spiritualGoals?: SpiritualGoals | null;
 
   @Prop({ type: Types.ObjectId, ref: 'FocusTimer', default: null })
   currentFocusTimerId: Types.ObjectId | null;

@@ -68,6 +68,7 @@ export class EmailService {
     name: string,
     inviteLink: string,
     expiresIn: string,
+    orgName: string,
   ) {
     const html = `
       <!DOCTYPE html>
@@ -75,7 +76,8 @@ export class EmailService {
         <body style="font-family:sans-serif;background:#f4f7fb;margin:0;padding:40px 0;">
           <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:40px;box-shadow:0 2px 8px rgba(0,0,0,.08);">
             <h2 style="margin:0 0 8px;color:#0f1f35;">You've been invited to FaithCare!</h2>
-            <p style="color:#555;margin:0 0 24px;">Hi ${name}, you've been invited to join the FaithCare platform as an organisation admin.</p>
+            <p style="color:#555;margin:0 0 8px;">Hi ${name},</p>
+            <p style="color:#555;margin:0 0 24px;">You've been invited by <strong>${orgName}</strong> to join the FaithCare platform as an organisation admin.</p>
             <p style="color:#555;margin:0 0 20px;">Click the button below to accept your invitation and set your password. The link expires in <strong>${expiresIn}</strong>.</p>
             <div style="text-align:center;margin-bottom:28px;">
               <a href="${inviteLink}" style="display:inline-block;background:#2e86ab;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:15px;">Accept Invitation</a>

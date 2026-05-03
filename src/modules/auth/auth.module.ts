@@ -8,6 +8,13 @@ import { AuthController } from './auth.controller';
 import { EmailService } from './services/email.service';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Otp, OtpSchema } from './schemas/otp.schema';
+import {
+  Organization,
+  OrganizationSchema,
+} from '../organizations/schemas/organization.schema';
+import { Invitation, InvitationSchema } from './schemas/invitation.schema';
+import { InvitationRepository } from './repositories/invitation.repository';
+import { InvitationService } from './services/invitation.service';
 import { JwtStrategy } from 'src/core/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
 
@@ -24,10 +31,19 @@ import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Otp.name, schema: OtpSchema },
+      { name: Organization.name, schema: OrganizationSchema },
+      { name: Invitation.name, schema: InvitationSchema },
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService, JwtStrategy, JwtRefreshStrategy],
+  providers: [
+    AuthService,
+    EmailService,
+    InvitationService,
+    InvitationRepository,
+    JwtStrategy,
+    JwtRefreshStrategy,
+  ],
   exports: [JwtModule, PassportModule],
 })
 export class AuthModule {}

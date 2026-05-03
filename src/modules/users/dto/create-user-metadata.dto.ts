@@ -47,15 +47,6 @@ export class CreateUserMetaDataDto {
   location?: string;
 
   @ApiPropertyOptional({
-    example: '64a1f2c3e4b5d6e7f8a9b0c1',
-    description:
-      'ID of an existing organization. Provide this when the user selects a church from search results.',
-  })
-  @IsOptional()
-  @IsMongoId()
-  organization?: string;
-
-  @ApiPropertyOptional({
     example: 'Grace Chapel Abuja',
     description:
       'Free-text church name. Provide this when the church is not found in the system.',
@@ -64,15 +55,14 @@ export class CreateUserMetaDataDto {
   @IsString()
   churchName?: string;
 
-  @ApiPropertyOptional({ type: () => SpiritualGoalsDto, isArray: true })
+  @ApiPropertyOptional({ type: () => SpiritualGoalsDto })
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
+  @ValidateNested()
   @Type(() => SpiritualGoalsDto)
-  spiritualGoals?: SpiritualGoalsDto[];
+  spiritualGoals?: SpiritualGoalsDto;
 
-  @ApiPropertyOptional({ example: 7 })
-  @IsOptional()
-  @IsNumber()
-  dailyBibleReadingStreakCount?: number;
+  // @ApiPropertyOptional({ example: 7 })
+  // @IsOptional()
+  // @IsNumber()
+  // dailyBibleReadingStreakCount?: number;
 }

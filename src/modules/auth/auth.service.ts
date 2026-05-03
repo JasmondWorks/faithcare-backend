@@ -13,6 +13,10 @@ import * as bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
+import {
+  Organization,
+  OrganizationDocument,
+} from '../organizations/schemas/organization.schema';
 import { EmailService } from './services/email.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserLoginDto } from './dto/user-login.dto';
@@ -21,15 +25,20 @@ import { ResendOtpDto } from './dto/resend-otp.dto';
 import { Role } from 'src/core/enums/role.enum';
 import { RequestUser } from 'src/core/types/request-user.interface';
 import { InviteAdminDto } from './dto/invite-admin.dto';
+import { InvitationService } from './services/invitation.service';
+import { InvitationStatus } from './enums/invitation-status.enum';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Otp.name) private otpModel: Model<OtpDocument>,
+    @InjectModel(Organization.name)
+    private orgModel: Model<OrganizationDocument>,
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
+    private invitationService: InvitationService,
   ) {}
 
   // ── Token helpers ──────────────────────────────────────────────
@@ -68,7 +77,10 @@ export class AuthService {
       role: user.role,
       isEmailVerified: user.isEmailVerified,
       isAdminVerified: user.isAdminVerified,
-      isOnboarded: user.isOnboarded,
+      isOnboarded:
+        user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN
+          ? !!user.organizationId
+          : user.isOnboarded,
       isInvited: user.isInvited,
       isOrgCreator: user.isOrgCreator,
       organizationId: user.organizationId ? String(user.organizationId) : null,
@@ -374,125 +386,160 @@ export class AuthService {
     return { success: true, message: 'OTP sent. Check your email.' };
   }
 
-  // ── Super admin / admin invite ────────────────────────────────
+  // ── Admin invite ──────────────────────────────────────────────
 
   async inviteAdmin(inviter: RequestUser, dto: InviteAdminDto) {
     if (inviter.role !== Role.SUPER_ADMIN && inviter.role !== Role.ADMIN) {
       throw new BadRequestException('Not authorized to invite admins');
     }
-
     if (inviter.role === Role.ADMIN && !inviter.organizationId) {
       throw new BadRequestException(
         'You must belong to an organization before inviting other admins',
       );
     }
 
-    const existing = await this.userModel.findOne({ email: dto.email });
+    // Only block if an account that has already been ACCEPTED exists.
+    const existing = await this.userModel.findOne({
+      email: dto.email,
+      isDeleted: false,
+    });
     if (existing) throw new ConflictException('Email already registered');
 
-    // Create the account with an unusable placeholder password.
-    // The real password is set by the invited admin via acceptInvite().
-    const placeholder = await bcrypt.hash(
-      `invite-${Date.now()}-${Math.random()}`,
-      12,
-    );
+    // Resolve the inviting org's display name for the email body.
+    let orgName = 'FaithCare';
+    if (inviter.organizationId) {
+      const org = await this.orgModel.findById(inviter.organizationId);
+      orgName = org?.name ?? 'FaithCare';
+    }
 
-    await this.userModel.create({
-      name: dto.fullName,
+    const expiresIn = this.config.get<string>('jwt.inviteExpiresIn') ?? '7d';
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Default to 7 days for tracking
+
+    // Create a DB record for tracking
+    await this.invitationService.create({
       email: dto.email,
-      password: placeholder,
-      role: Role.ADMIN,
+      fullName: dto.fullName,
       organizationId: inviter.organizationId ?? null,
-      isEmailVerified: true,
-      isAdminVerified: true,
-      isInvited: true,
-      isOnboarded: !!inviter.organizationId,
+      invitedBy: inviter.id,
+      expiresAt,
     });
 
-    // Invite token — short-lived JWT signed with a dedicated secret.
     const inviteToken = this.jwtService.sign(
-      { sub: dto.email, type: 'admin_invite' },
+      {
+        sub: dto.email,
+        name: dto.fullName,
+        type: 'admin_invite',
+        organizationId: inviter.organizationId ?? null,
+        orgName,
+      },
       {
         secret: this.config.get<string>('jwt.inviteSecret') as string,
-        expiresIn: (this.config.get<string>('jwt.inviteExpiresIn') ?? '7d') as any,
+        expiresIn: expiresIn as any,
       },
     );
 
     const platformUrl = this.config.get<string>('platformUrl');
     const inviteLink = `${platformUrl}/auth/accept-invite?token=${inviteToken}`;
 
-    const expiresIn = this.config.get<string>('jwt.inviteExpiresIn') ?? '7d';
-    await this.emailService.sendAdminInvite(dto.email, dto.fullName, inviteLink, expiresIn);
+    await this.emailService.sendAdminInvite(
+      dto.email,
+      dto.fullName,
+      inviteLink,
+      expiresIn,
+      orgName,
+    );
 
     return { success: true, message: `Invitation sent to ${dto.email}` };
   }
 
-  // ── Invite token helpers ───────────────────────────────────────
+  // ── Invite token helpers ──────────────────────────────────────
 
-  private decodeInviteToken(token: string): string {
-    let payload: { sub: string; type: string };
+  private decodeInviteToken(token: string): {
+    sub: string;
+    name: string;
+    type: string;
+    organizationId: string | null;
+    orgName: string;
+  } {
     try {
-      payload = this.jwtService.verify(token, {
+      const payload = this.jwtService.verify(token, {
         secret: this.config.get<string>('jwt.inviteSecret') as string,
       });
+      if (payload.type !== 'admin_invite') {
+        throw new Error();
+      }
+      return payload;
     } catch {
       throw new BadRequestException(
         'Invitation link is invalid or has expired. Please ask to be re-invited.',
       );
     }
-    if (payload.type !== 'admin_invite') {
-      throw new BadRequestException('Invalid invitation token');
-    }
-    return payload.sub; // email
-  }
-
-  private async findPendingInvitee(email: string) {
-    const user = await this.userModel.findOne({
-      email,
-      isInvited: true,
-      isDeleted: false,
-    });
-    if (!user) {
-      throw new NotFoundException(
-        'Invitation not found or has already been used',
-      );
-    }
-    return user;
   }
 
   /**
    * Validates the invite token without consuming it.
-   * Returns the invited admin's name and email so the frontend can
-   * pre-fill the set-password form before calling acceptInvite.
+   * Returns name, email, and orgName from the JWT payload so the frontend
+   * can personalise the set-password page before calling acceptInvite.
    */
   async verifyInvite(token: string) {
-    const email = this.decodeInviteToken(token);
-    const user = await this.findPendingInvitee(email);
+    const payload = this.decodeInviteToken(token);
+
+    // If the user already exists the invite was already accepted.
+    const accepted = await this.userModel.findOne({
+      email: payload.sub,
+      isDeleted: false,
+    });
+    if (accepted) {
+      throw new ConflictException(
+        'This invitation has already been accepted. Please log in.',
+      );
+    }
+
     return {
       success: true,
-      data: { name: user.name, email: user.email },
+      data: { name: payload.name, email: payload.sub, orgName: payload.orgName },
     };
   }
 
   /**
-   * Called by the invited admin from the link in their email.
-   * Verifies the invite token, sets the chosen password,
-   * clears isInvited, and returns a full auth response so the
-   * frontend can log the user straight in.
+   * Creates the admin account and sets their chosen password in one step.
+   * Returns a full auth response so the frontend can log the user in
+   * immediately — no separate login step required.
    */
   async acceptInvite(token: string, password: string) {
-    const email = this.decodeInviteToken(token);
-    const user = await this.findPendingInvitee(email);
+    const payload = this.decodeInviteToken(token);
+
+    const accepted = await this.userModel.findOne({
+      email: payload.sub,
+      isDeleted: false,
+    });
+    if (accepted) {
+      throw new ConflictException(
+        'This invitation has already been accepted. Please log in.',
+      );
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const updated = await this.userModel.findByIdAndUpdate(
-      user._id,
-      { password: hashedPassword, isInvited: false },
-      { new: true },
-    );
-    if (!updated) throw new NotFoundException('User not found');
+    const user = await this.userModel.create({
+      name: payload.name,
+      email: payload.sub,
+      password: hashedPassword,
+      role: Role.ADMIN,
+      organizationId: payload.organizationId ?? null,
+      isEmailVerified: true,
+      isAdminVerified: true,
+      isInvited: false,
+      isOnboarded: !!payload.organizationId,
+    });
 
-    const { accessToken, refreshToken } = this.signTokens(updated);
+    // Mark invitation as accepted in DB
+    const invite = await this.invitationService.findByEmail(payload.sub);
+    if (invite) {
+      await this.invitationService.markAsAccepted(String(invite._id));
+    }
+
+    const { accessToken, refreshToken } = this.signTokens(user);
     return {
       success: true,
       message: 'Password set successfully. Welcome to FaithCare!',
@@ -501,8 +548,13 @@ export class AuthService {
         refreshToken,
         tokenType: 'Bearer',
         expiresIn: 28800,
-        user: this.userView(updated),
+        user: this.userView(user),
       },
     };
+  }
+
+  async getInvitationsByOrg(organizationId: string) {
+    const data = await this.invitationService.findByOrganization(organizationId);
+    return { success: true, data };
   }
 }
