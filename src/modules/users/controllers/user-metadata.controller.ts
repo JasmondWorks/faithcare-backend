@@ -61,14 +61,17 @@ export class UserMetaDataController {
     @Param('id') id: string,
     @Body() updateUserMetaDataDto: UpdateUserMetaDataDto,
   ) {
-    const data = await this.userMetaDataService.update(id, updateUserMetaDataDto);
+    const data = await this.userMetaDataService.update(
+      id,
+      updateUserMetaDataDto,
+    );
     return { success: true, data };
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete metadata record (USER only)' })
-  async delete(@Param('id') id: string) {
-    await this.userMetaDataService.delete(id);
+  @ApiOperation({ summary: 'Delete user metadata (USER only)' })
+  async deleteMetadata(@Param('id') id: string) {
+    await this.userMetaDataService.deleteMetadata(id);
     return { success: true };
   }
 
