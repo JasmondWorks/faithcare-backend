@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -15,13 +16,16 @@ import { CreateFollowUpDto } from '../dto/create-follow-up.dto';
 import { UpdateFollowUpDto } from '../dto/update-follow-up.dto';
 import { SendFollowUpMessageDto } from '../dto/send-follow-up-message.dto';
 import { LogFollowUpReplyDto } from '../dto/log-follow-up-reply.dto';
+import { CurrentUser } from 'src/core/decorators/current-user.decorator';
+import { RequestUser } from 'src/core/types/request-user.interface';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
+import { PaginationDto } from 'src/core/dto/pagination.dto';
 
 @ApiTags('ChurchCare — Follow-Up')
 @ApiBearerAuth('access-token')
 @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-@Controller('organizations/:organizationId/follow-ups')
+@Controller('church/follow-ups')
 export class FollowUpController {
   constructor(private readonly followUpService: FollowUpService) {}
 
@@ -35,19 +39,22 @@ export class FollowUpController {
   })
   @ApiResponse({ status: 201, description: 'Follow-up created' })
   create(
-    @Param('organizationId') organizationId: string,
+    @CurrentUser() user: RequestUser,
     @Body() dto: CreateFollowUpDto,
   ) {
-    return this.followUpService.create({ ...dto, organizationId });
+    return this.followUpService.create({ ...dto, organizationId: user.organizationId! });
   }
 
   @Get()
   @ApiOperation({
-    summary: 'List all follow-up tasks for the organization (ADMIN only)',
+    summary: "List all follow-up tasks for the authenticated admin's org (ADMIN only)",
   })
   @ApiResponse({ status: 200, description: 'List of follow-up tasks' })
-  findByOrganization(@Param('organizationId') organizationId: string) {
-    return this.followUpService.findByOrganization(organizationId);
+  findByOrganization(
+    @CurrentUser() user: RequestUser,
+    @Query() pagination: PaginationDto,
+  ) {
+    return this.followUpService.findByOrganization(user.organizationId!, undefined, pagination);
   }
 
   @Get('member/:newMemberId')

@@ -31,4 +31,11 @@ export abstract class BaseService<T> {
   softDelete(id: string) {
     return this.repository.softDelete(id);
   }
+
+  paginate(
+    filter: any = {},
+    options: { page: number; limit: number; sort?: Record<string, 1 | -1> },
+  ) {
+    return this.repository.paginate(filter, options);
+  }
 }

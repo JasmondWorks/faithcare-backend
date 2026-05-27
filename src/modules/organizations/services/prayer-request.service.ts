@@ -9,7 +9,10 @@ export class PrayerRequestService extends BaseService<PrayerRequestDocument> {
     super(prayerRequestRepository);
   }
 
-  async findByOrganization(organizationId: string) {
-    return this.prayerRequestRepository.findByOrganization(organizationId);
+  async findByOrganization(
+    organizationId: string,
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
+  ) {
+    return this.prayerRequestRepository.findByOrganization(organizationId, pagination);
   }
 }

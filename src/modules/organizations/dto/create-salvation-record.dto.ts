@@ -1,11 +1,8 @@
-import { IsEnum, IsMongoId, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { SalvationStatus } from 'src/core/enums/salvation-status.enum';
 
 export class CreateSalvationRecordDto {
-  @ApiProperty({ example: '64a1f2c3e4b5d6e7f8a9b0c1' })
-  @IsMongoId()
-  organizationId: string;
 
   @ApiProperty({ example: 'Chukwuemeka Adeyemi' })
   @IsString()

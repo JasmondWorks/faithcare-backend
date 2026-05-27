@@ -13,11 +13,34 @@ export class FollowUpRepository extends BaseRepository<FollowUpDocument> {
     super(followUpModel);
   }
 
-  async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
+  async findByOrganization(
+    organizationId: string,
+    filters?: { status?: string; type?: string },
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
+  ) {
+    const query: Record<string, any> = { organizationId };
+    if (filters?.status) query.status = filters.status;
+    if (filters?.type) query.type = filters.type;
+    return this.paginate(query, { ...pagination, sort: { createdAt: -1 } });
   }
 
-  async findByMember(newMemberId: string) {
-    return this.model.find({ newMemberId, isDeleted: { $ne: true } }).exec();
+  async findByMember(targetId: string) {
+    return this.model
+      .find({ targetId, isDeleted: { $ne: true } })
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async findByContactPhone(phone: string) {
+    // Match on the last 10 digits to handle +country-code variations
+    const digits = phone.replace(/\D/g, '').slice(-10);
+    return this.model
+      .find({
+        contactPhone: { $regex: new RegExp(`${digits}$`) },
+        isDeleted: { $ne: true },
+      })
+      .sort({ updatedAt: -1 })
+      .limit(1)
+      .exec();
   }
 }

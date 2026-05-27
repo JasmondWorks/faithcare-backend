@@ -15,7 +15,7 @@ export class Community extends BaseSchema {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  @Prop({ type: [Types.ObjectId], ref: 'Member', default: [] })
   members: Types.ObjectId[];
 
   @Prop({ default: null })

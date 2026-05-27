@@ -13,6 +13,10 @@ import {
   OrganizationSchema,
 } from '../organizations/schemas/organization.schema';
 import { Invitation, InvitationSchema } from './schemas/invitation.schema';
+import {
+  UserMetaData,
+  UserMetaDataSchema,
+} from '../users/schemas/user-metadata.schema';
 import { InvitationRepository } from './repositories/invitation.repository';
 import { InvitationService } from './services/invitation.service';
 import { JwtStrategy } from 'src/core/strategies/jwt.strategy';
@@ -33,6 +37,7 @@ import { JwtRefreshStrategy } from 'src/core/strategies/jwt-refresh.strategy';
       { name: Otp.name, schema: OtpSchema },
       { name: Organization.name, schema: OrganizationSchema },
       { name: Invitation.name, schema: InvitationSchema },
+      { name: UserMetaData.name, schema: UserMetaDataSchema },
     ]),
   ],
   controllers: [AuthController],

@@ -6,6 +6,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as QRCode from 'qrcode';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { BaseService } from 'src/core/services/base.service';
 import { OrganizationDocument } from '../schemas/organization.schema';
 import { OrganizationRepository } from '../repositories/organization.repository';
@@ -18,6 +20,8 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
   constructor(
     private organizationRepository: OrganizationRepository,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private config: ConfigService,
+    private jwtService: JwtService,
   ) {
     super(organizationRepository);
   }
@@ -25,10 +29,25 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
   private async generateFirstTimerQrCode(
     orgId: string,
     slug: string,
-    name: string,
+    orgName: string,
   ): Promise<string> {
-    const payload = JSON.stringify({ organizationId: orgId, slug, name });
-    return QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', width: 400 });
+    const platformUrl =
+      this.config.get<string>('platformUrl') ??
+      'https://faithcare-web.vercel.app';
+
+    // Sign a short-lived token so the URL is opaque and time-gated.
+    // The QR code must be regenerated before each service — once expired,
+    // forwarded URLs and screenshots no longer work.
+    const token = this.jwtService.sign(
+      { sub: orgId, slug, name: orgName, type: 'qr_registration' },
+      {
+        secret: this.config.get<string>('jwt.qrSecret') as string,
+        expiresIn: (this.config.get<string>('jwt.qrExpiresIn') ?? '8h') as any,
+      },
+    );
+
+    const url = `${platformUrl}/register?token=${token}`;
+    return QRCode.toDataURL(url, { errorCorrectionLevel: 'M', width: 400 });
   }
 
   private toSlug(name: string): string {
@@ -53,11 +72,7 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     });
     const orgId = String(org._id);
 
-    const firstTimerQrCode = await this.generateFirstTimerQrCode(
-      orgId,
-      slug,
-      dto.name,
-    );
+    const firstTimerQrCode = await this.generateFirstTimerQrCode(orgId, slug, dto.name);
     await this.organizationRepository.update(orgId, { firstTimerQrCode });
     org.firstTimerQrCode = firstTimerQrCode;
 
@@ -77,11 +92,7 @@ export class OrganizationService extends BaseService<OrganizationDocument> {
     const org = await this.organizationRepository.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found');
 
-    const firstTimerQrCode = await this.generateFirstTimerQrCode(
-      orgId,
-      org.slug,
-      org.name,
-    );
+    const firstTimerQrCode = await this.generateFirstTimerQrCode(orgId, org.slug, org.name);
     await this.organizationRepository.update(orgId, { firstTimerQrCode });
     return { firstTimerQrCode };
   }

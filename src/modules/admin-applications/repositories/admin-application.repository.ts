@@ -22,12 +22,30 @@ export class AdminApplicationRepository extends BaseRepository<AdminApplicationD
       .exec();
   }
 
-  findByOrganization(organizationId: string) {
-    return this.model
-      .find({ organizationId, status: 'PENDING', isDeleted: { $ne: true } })
-      .populate('applicantId', 'name email createdAt')
-      .sort({ createdAt: -1 })
-      .exec();
+  async findByOrganization(
+    organizationId: string,
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
+  ) {
+    const page = Math.max(1, pagination.page);
+    const limit = Math.min(100, Math.max(1, pagination.limit));
+    const skip = (page - 1) * limit;
+    const filter = { organizationId, status: 'PENDING', isDeleted: { $ne: true } };
+
+    const [data, total] = await Promise.all([
+      this.model
+        .find(filter)
+        .populate('applicantId', 'name email createdAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.model.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   findExpiredPending() {

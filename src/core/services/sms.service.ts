@@ -9,7 +9,6 @@ interface SmsRecipient {
 @Injectable()
 export class SmsService {
   private readonly logger = new Logger(SmsService.name);
-  private readonly baseUrl = 'https://api.ng.termii.com/api';
 
   constructor(private readonly config: ConfigService) {}
 
@@ -21,10 +20,21 @@ export class SmsService {
     return this.config.get<string>('termii.senderId') ?? 'FaithCare';
   }
 
-  async sendSms(to: string, message: string): Promise<boolean> {
+  private get baseUrl(): string {
+    return (
+      this.config.get<string>('termii.baseUrl') ??
+      'https://api.ng.termii.com/api'
+    );
+  }
+
+  async sendSms(
+    to: string,
+    message: string,
+  ): Promise<{ ok: boolean; providerError?: string }> {
     if (!this.apiKey) {
-      this.logger.warn('SMS not configured — TERMII_API_KEY missing');
-      return false;
+      const providerError = 'SMS not configured — TERMII_API_KEY missing';
+      this.logger.warn(providerError);
+      return { ok: false, providerError };
     }
 
     try {
@@ -41,17 +51,20 @@ export class SmsService {
         }),
       });
 
+      const body = await res.text();
+
       if (!res.ok) {
-        const error = await res.text();
-        this.logger.error(`SMS send failed (${res.status}): ${error}`);
-        return false;
+        const providerError = `Termii ${res.status}: ${body}`;
+        this.logger.error(`SMS send failed — ${providerError}`);
+        return { ok: false, providerError };
       }
 
-      this.logger.log(`SMS sent to ${to}`);
-      return true;
+      this.logger.log(`SMS sent to ${to} — ${body}`);
+      return { ok: true };
     } catch (err) {
-      this.logger.error(`SMS network error: ${String(err)}`);
-      return false;
+      const providerError = `SMS network error: ${String(err)}`;
+      this.logger.error(providerError);
+      return { ok: false, providerError };
     }
   }
 

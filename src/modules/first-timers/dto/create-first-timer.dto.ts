@@ -8,9 +8,13 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFirstTimerDto {
-  @ApiProperty({ description: 'Organization ID this visitor belongs to' })
-  @IsMongoId()
-  organizationId: string;
+  @ApiProperty({
+    description:
+      'Token received from GET /church/register/verify. The server derives organizationId from this token — it cannot be spoofed.',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  @IsString()
+  qrToken: string;
 
   @ApiProperty({ example: 'Amara Nwosu' })
   @IsString()

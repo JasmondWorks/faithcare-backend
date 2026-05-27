@@ -9,7 +9,10 @@ export class SalvationRecordService extends BaseService<SalvationRecordDocument>
     super(salvationRecordRepository);
   }
 
-  async findByOrganization(organizationId: string) {
-    return this.salvationRecordRepository.findByOrganization(organizationId);
+  async findByOrganization(
+    organizationId: string,
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
+  ) {
+    return this.salvationRecordRepository.findByOrganization(organizationId, pagination);
   }
 }

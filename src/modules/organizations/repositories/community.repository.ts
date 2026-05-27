@@ -14,41 +14,54 @@ export class CommunityRepository extends BaseRepository<CommunityDocument> {
   }
 
   async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
-  }
-
-  async findByUserInOrg(userId: string, organizationId: string) {
     return this.model
-      .find({ organizationId, members: userId, isDeleted: { $ne: true } })
+      .find({ organizationId, isDeleted: { $ne: true } })
+      .populate('members', 'name phoneNumber email status')
       .exec();
   }
 
-  async addMember(communityId: string, userId: string) {
+  async findByIdWithMembers(id: string) {
     return this.model
-      .findByIdAndUpdate(
-        communityId,
-        { $addToSet: { members: userId } },
-        { new: true },
+      .findById(id)
+      .populate<{ members: { name: string; phoneNumber: string; email: string | null }[] }>(
+        'members',
+        'name phoneNumber email',
       )
       .exec();
   }
 
-  async removeMember(communityId: string, userId: string) {
+  async addMember(communityId: string, memberId: string) {
     return this.model
       .findByIdAndUpdate(
         communityId,
-        { $pull: { members: userId } },
+        { $addToSet: { members: memberId } },
         { new: true },
       )
+      .populate('members', 'name phoneNumber email status')
+      .exec();
+  }
+
+  async removeMember(communityId: string, memberId: string) {
+    return this.model
+      .findByIdAndUpdate(
+        communityId,
+        { $pull: { members: memberId } },
+        { new: true },
+      )
+      .populate('members', 'name phoneNumber email status')
       .exec();
   }
 
   async findRecentMembers(id: string) {
-    const community = await this.model.findById(id).exec();
+    const community = await this.model
+      .findById(id)
+      .populate('members', 'name phoneNumber email status')
+      .exec();
     if (!community) return null;
+    const allMembers = community.members as any[];
     return {
       ...community.toObject(),
-      recentMembers: community.members.slice(-5),
+      recentMembers: allMembers.slice(-5),
     };
   }
 }

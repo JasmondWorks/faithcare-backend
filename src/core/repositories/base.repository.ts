@@ -50,7 +50,11 @@ export abstract class BaseRepository<T> {
 
   async paginate(
     filter: any = {},
-    options: { page: number; limit: number },
+    options: {
+      page: number;
+      limit: number;
+      sort?: Record<string, 1 | -1>;
+    },
   ): Promise<{
     data: T[];
     meta: {
@@ -60,13 +64,14 @@ export abstract class BaseRepository<T> {
       totalPages: number;
     };
   }> {
-    const page = options.page || 1;
-    const limit = options.limit || 10;
+    const page = Math.max(1, options.page || 1);
+    const limit = Math.min(100, Math.max(1, options.limit || 20));
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
       this.model
         .find({ ...filter, isDeleted: { $ne: true } })
+        .sort(options.sort ?? {})
         .skip(skip)
         .limit(limit)
         .exec(),

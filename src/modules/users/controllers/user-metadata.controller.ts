@@ -28,51 +28,55 @@ export class UserMetaDataController {
 
   @Post()
   @ApiOperation({ summary: 'Create user metadata record (USER only)' })
-  async create(
+  create(
     @Body() createUserMetaDataDto: CreateUserMetaDataDto,
     @CurrentUser() user: RequestUser,
   ) {
-    const data = await this.userMetaDataService.create({
+    return this.userMetaDataService.create({
       ...createUserMetaDataDto,
       userId: user.id,
     });
-    return { success: true, data };
   }
 
   @Get('me')
   @ApiOperation({
     summary: 'Get own metadata — includes populated church info (USER only)',
   })
-  async getMyMetadata(@CurrentUser() user: RequestUser) {
-    const data = await this.userMetaDataService.findByUserId(user.id);
-    return { success: true, data: data || null };
+  getMyMetadata(@CurrentUser() user: RequestUser) {
+    return this.userMetaDataService.findByUserId(user.id);
+  }
+
+  @Get('me/dashboard')
+  @ApiOperation({
+    summary: 'Get personal growth dashboard stats (USER only)',
+    description:
+      'Returns aggregated stats for the personal dashboard: login streak, journaling streak, ' +
+      'scripture reading streak and total count, focus session count with recent sessions, ' +
+      'latest memorization activity, and a 30-day consistency heatmap.',
+  })
+  getDashboard(@CurrentUser() user: RequestUser) {
+    return this.userMetaDataService.getDashboard(user.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get metadata by record ID (USER only)' })
-  async findOne(@Param('id') id: string) {
-    const data = await this.userMetaDataService.findById(id);
-    return { success: true, data };
+  findOne(@Param('id') id: string) {
+    return this.userMetaDataService.findById(id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update metadata fields (USER only)' })
-  async update(
+  update(
     @Param('id') id: string,
     @Body() updateUserMetaDataDto: UpdateUserMetaDataDto,
   ) {
-    const data = await this.userMetaDataService.update(
-      id,
-      updateUserMetaDataDto,
-    );
-    return { success: true, data };
+    return this.userMetaDataService.update(id, updateUserMetaDataDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete user metadata (USER only)' })
-  async deleteMetadata(@Param('id') id: string) {
-    await this.userMetaDataService.deleteMetadata(id);
-    return { success: true };
+  deleteMetadata(@Param('id') id: string) {
+    return this.userMetaDataService.deleteMetadata(id);
   }
 
   @Patch('me/church')
@@ -84,11 +88,10 @@ export class UserMetaDataController {
       'Provide `organization` (a MongoDB ObjectId) if the church was found via search, ' +
       'or `churchName` (a free-text string) if it was not. Only one field should be sent.',
   })
-  async connectToChurch(
+  connectToChurch(
     @CurrentUser() user: RequestUser,
     @Body() dto: ConnectChurchDto,
   ) {
-    const data = await this.userMetaDataService.connectToChurch(user.id, dto);
-    return { success: true, data };
+    return this.userMetaDataService.connectToChurch(user.id, dto);
   }
 }

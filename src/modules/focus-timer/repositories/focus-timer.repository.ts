@@ -14,11 +14,11 @@ export class FocusTimerRepository extends BaseRepository<FocusTimerDocument> {
     super(focusTimerModel);
   }
 
-  async findByUser(userId: string) {
-    return this.model
-      .find({ userId, isDeleted: { $ne: true } })
-      .sort({ createdAt: -1 })
-      .exec();
+  async findByUser(
+    userId: string,
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
+  ) {
+    return this.paginate({ userId }, { ...pagination, sort: { createdAt: -1 } });
   }
 
   async findActiveByUser(userId: string) {

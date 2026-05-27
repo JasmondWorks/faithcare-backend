@@ -14,6 +14,8 @@ export default () => ({
     refreshExpiresIn: requireEnv('JWT_REFRESH_TOKEN_EXPIRES_IN'),
     inviteSecret: process.env.JWT_INVITE_SECRET ?? requireEnv('ACCESS_SECRET'),
     inviteExpiresIn: process.env.JWT_INVITE_EXPIRES_IN ?? '7d',
+    qrSecret: process.env.JWT_QR_SECRET ?? requireEnv('ACCESS_SECRET'),
+    qrExpiresIn: process.env.JWT_QR_EXPIRES_IN ?? '8h',
   },
 
   email: {
@@ -24,12 +26,6 @@ export default () => ({
     from: requireEnv('EMAIL_FROM'),
   },
 
-  sms: {
-    provider: process.env.SMS_PROVIDER ?? '',
-    apiKey: process.env.SMS_API_KEY ?? '',
-    from: process.env.SMS_FROM ?? '',
-  },
-
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID ?? '',
   },
@@ -37,6 +33,7 @@ export default () => ({
   whatsapp: {
     token: process.env.WHATSAPP_TOKEN ?? '',
     phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID ?? '',
+    verifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? '',
   },
 
   termii: {
@@ -46,6 +43,20 @@ export default () => ({
   },
 
   platformUrl: process.env.PLATFORM_URL ?? 'https://faithcare-web.vercel.app',
+
+  scripture: {
+    key: requireEnv('API_BIBLE_KEY'),
+    url: process.env.API_BIBLE_URL ?? 'https://api.scripture.api.bible/v1',
+    // Comma-separated api.bible IDs for each enabled translation, e.g.:
+    // API_BIBLE_IDS=de4e12af7f28f599-02,65eec8e0b60e656b-01,116FNN3PTQQH
+    // API_BIBLE_NAMES=KJV,NIV,NLT
+    bibleIds: (process.env.API_BIBLE_IDS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+    bibleNames: (process.env.API_BIBLE_NAMES ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+  },
+
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY ?? '',
+  },
 });
 
 const requireEnv = (key: string): string => {

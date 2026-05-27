@@ -6,6 +6,7 @@ import {
   Put,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JournalEntryService } from '../services/journal-entry.service';
@@ -15,6 +16,7 @@ import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
 import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { RequestUser } from 'src/core/types/request-user.interface';
+import { PaginationDto } from 'src/core/dto/pagination.dto';
 
 @ApiTags('Journal')
 @ApiBearerAuth('access-token')
@@ -38,8 +40,8 @@ export class JournalEntryController {
   @ApiOperation({
     summary: "List the authenticated user's journal entries (USER only)",
   })
-  findByUser(@CurrentUser() user: RequestUser) {
-    return this.journalEntryService.findByUser(user.id);
+  findByUser(@CurrentUser() user: RequestUser, @Query() pagination: PaginationDto) {
+    return this.journalEntryService.findByUser(user.id, pagination);
   }
 
   @Get(':id')

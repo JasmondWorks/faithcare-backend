@@ -12,6 +12,10 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { User, UserDocument } from '../users/schemas/user.schema';
+import {
+  UserMetaData,
+  UserMetaDataDocument,
+} from '../users/schemas/user-metadata.schema';
 import { Otp, OtpDocument } from './schemas/otp.schema';
 import {
   Organization,
@@ -35,11 +39,38 @@ export class AuthService {
     @InjectModel(Otp.name) private otpModel: Model<OtpDocument>,
     @InjectModel(Organization.name)
     private orgModel: Model<OrganizationDocument>,
+    @InjectModel(UserMetaData.name)
+    private userMetadataModel: Model<UserMetaDataDocument>,
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
     private invitationService: InvitationService,
   ) {}
+
+  private async updateLoginStreak(userId: string): Promise<void> {
+    const metadata = await this.userMetadataModel.findOne({ userId }).exec();
+    if (!metadata) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lastLogin = metadata.lastLoginDate ? new Date(metadata.lastLoginDate) : null;
+    if (lastLogin) {
+      lastLogin.setHours(0, 0, 0, 0);
+      const daysDiff = Math.floor((today.getTime() - lastLogin.getTime()) / 86400000);
+      if (daysDiff === 0) return;
+      const newStreak = daysDiff === 1 ? metadata.loginStreakCount + 1 : 1;
+      await this.userMetadataModel.findByIdAndUpdate(metadata._id, {
+        loginStreakCount: newStreak,
+        lastLoginDate: today,
+      }).exec();
+    } else {
+      await this.userMetadataModel.findByIdAndUpdate(metadata._id, {
+        loginStreakCount: 1,
+        lastLoginDate: today,
+      }).exec();
+    }
+  }
 
   // ── Token helpers ──────────────────────────────────────────────
 
@@ -173,6 +204,8 @@ export class AuthService {
 
     const { accessToken, refreshToken } = this.signTokens(user);
 
+    this.updateLoginStreak(String(user._id)).catch(() => {});
+
     // Admin pending approval: let them log in but flag the status for the frontend
     if (user.role === Role.ADMIN && !user.isAdminVerified) {
       return {
@@ -278,6 +311,7 @@ export class AuthService {
     }
 
     const { accessToken, refreshToken } = this.signTokens(user);
+    this.updateLoginStreak(String(user._id)).catch(() => {});
     return {
       success: true,
       data: {

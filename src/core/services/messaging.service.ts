@@ -29,17 +29,19 @@ export class MessagingService {
     );
   }
 
-  async sendToVisitor(options: SendOptions): Promise<boolean> {
+  async sendToVisitor(
+    options: SendOptions,
+  ): Promise<{ delivered: boolean; providerError?: string }> {
     const message = this.resolveVariables(options.template, options.vars);
-    let ok = false;
+    let result: { ok: boolean; providerError?: string } = { ok: false };
 
     if (options.channel === 'whatsapp') {
-      ok = await this.whatsapp.sendTextMessage(options.to, message);
+      result = await this.whatsapp.sendTextMessage(options.to, message);
     } else if (options.channel === 'sms') {
-      ok = await this.sms.sendSms(options.to, message);
+      result = await this.sms.sendSms(options.to, message);
     }
 
-    if (ok && options.organizationId) {
+    if (result.ok && options.organizationId) {
       this.notifications.notifyMessageSent(options.organizationId, {
         channel: options.channel,
         to: options.to,
@@ -48,7 +50,7 @@ export class MessagingService {
       });
     }
 
-    return ok;
+    return { delivered: result.ok, providerError: result.providerError };
   }
 
   async sendBulk(
@@ -81,7 +83,7 @@ export class MessagingService {
     }
 
     for (const item of waItems) {
-      const ok = await this.whatsapp.sendTextMessage(
+      const { ok } = await this.whatsapp.sendTextMessage(
         item.to,
         this.resolveVariables(item.template, item.vars),
       );

@@ -44,6 +44,18 @@ export class UserMetaData extends BaseSchema {
 
   @Prop({ default: 0 })
   dailyBibleReadingStreakCount: number;
+
+  @Prop({ default: 0 })
+  loginStreakCount: number;
+
+  @Prop({ type: Date, default: null })
+  lastLoginDate: Date | null;
+
+  @Prop({ default: 0 })
+  journalStreakCount: number;
+
+  @Prop({ type: Date, default: null })
+  lastJournalDate: Date | null;
 }
 
 export const UserMetaDataSchema = SchemaFactory.createForClass(UserMetaData);

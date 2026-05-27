@@ -16,6 +16,22 @@ import {
   Organization,
   OrganizationSchema,
 } from '../organizations/schemas/organization.schema';
+import {
+  DailyScripture,
+  DailyScriptureSchema,
+} from '../daily-scripture/schemas/daily-scripture.schema';
+import {
+  FocusTimer,
+  FocusTimerSchema,
+} from '../focus-timer/schemas/focus-timer.schema';
+import {
+  UserVerseMemory,
+  UserVerseMemorySchema,
+} from '../../memorization/schemas/user-verse-memory.schema';
+import {
+  JournalEntry,
+  JournalEntrySchema,
+} from '../journal/schemas/journal-entry.schema';
 import { UserMetaDataRepository } from './repositories/user-metadata.repository';
 import { OrganizationUserSettingsRepository } from './repositories/organization-user-settings.repository';
 import { UserMetaDataService } from './services/user-metadata.service';
@@ -33,6 +49,10 @@ import { OrganizationUserSettingsController } from './controllers/organization-u
         schema: OrganizationUserSettingsSchema,
       },
       { name: Organization.name, schema: OrganizationSchema },
+      { name: DailyScripture.name, schema: DailyScriptureSchema },
+      { name: FocusTimer.name, schema: FocusTimerSchema },
+      { name: UserVerseMemory.name, schema: UserVerseMemorySchema },
+      { name: JournalEntry.name, schema: JournalEntrySchema },
     ]),
   ],
   controllers: [

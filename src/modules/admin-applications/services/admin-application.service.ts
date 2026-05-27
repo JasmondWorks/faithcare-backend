@@ -72,6 +72,7 @@ export class AdminApplicationService {
     organizationId: string,
     requesterId: string,
     requesterRole: string,
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
   ) {
     if ((requesterRole as Role) !== Role.SUPER_ADMIN) {
       const org = await this.orgModel.findById(organizationId);
@@ -81,7 +82,7 @@ export class AdminApplicationService {
         );
       }
     }
-    return this.appRepo.findByOrganization(organizationId);
+    return this.appRepo.findByOrganization(organizationId, pagination);
   }
 
   /**

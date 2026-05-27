@@ -4,7 +4,10 @@
       "Bash(git commit -m ' *)",
       "Bash(git merge *)",
       "Bash(xargs ls *)",
-      "Bash(xargs sed *)"
+      "Bash(xargs sed *)",
+      "Bash(grep -v '^$')",
+      "Bash(node -e \"require\\('xlsx'\\)\")",
+      "Bash(node -e \"require\\('multer'\\)\")"
     ]
   }
 }

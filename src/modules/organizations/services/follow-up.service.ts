@@ -24,8 +24,12 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
     super(followUpRepository);
   }
 
-  findByOrganization(organizationId: string) {
-    return this.followUpRepository.findByOrganization(organizationId);
+  findByOrganization(
+    organizationId: string,
+    filters?: { status?: string; type?: string },
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
+  ) {
+    return this.followUpRepository.findByOrganization(organizationId, filters, pagination);
   }
 
   findByTarget(targetId: string) {
@@ -71,7 +75,7 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
     const record = await this.followUpRepository.findById(id);
     if (!record) throw new NotFoundException('Follow-up not found');
 
-    const delivered = await this.messaging.sendToVisitor({
+    const { delivered, providerError } = await this.messaging.sendToVisitor({
       channel: dto.channel,
       to: (dto.contactPhone ??
         dto.phoneNumber ??
@@ -109,7 +113,13 @@ export class FollowUpService extends BaseService<FollowUpDocument> {
       });
     }
 
-    return Object.assign(updated ?? record, { delivered });
+    const doc = updated ?? record;
+    const plain = (doc as any).toObject ? (doc as any).toObject() : { ...doc };
+    return {
+      ...plain,
+      delivered,
+      ...(providerError ? { deliveryError: providerError } : {}),
+    } as any;
   }
 
   /**

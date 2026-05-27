@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
 import { FirstTimer, FirstTimerSchema } from './schemas/first-timer.schema';
 import { SecondTimer, SecondTimerSchema } from './schemas/second-timer.schema';
 import { FirstTimerRepository } from './repositories/first-timer.repository';
@@ -11,6 +12,7 @@ import { FirstTimerController } from './controllers/first-timer.controller';
 
 @Module({
   imports: [
+    JwtModule.register({}),
     MongooseModule.forFeature([
       { name: FirstTimer.name, schema: FirstTimerSchema },
       { name: SecondTimer.name, schema: SecondTimerSchema },

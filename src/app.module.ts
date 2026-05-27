@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,16 +23,40 @@ import { PrimeModule } from './modules/prime/prime.module';
 import { MessageTemplatesModule } from './modules/message-templates/message-templates.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminApplicationsModule } from './modules/admin-applications/admin-applications.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { MemorizationModule } from './memorization/memorization.module';
+import { BibleReferenceModule } from './modules/bible-reference/bible-reference.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [envConfig] }),
+    EventEmitterModule.forRoot(),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         uri: config.get<string>('mongodb.uri'),
-        serverSelectionTimeoutMS: 3000,
-        connectTimeoutMS: 3000,
+        serverSelectionTimeoutMS: 30000,
+        connectTimeoutMS: 30000,
+        socketTimeoutMS: 45000,
+        connectionFactory: (connection) => {
+          connection.plugin((schema: any) => {
+            schema.set('toJSON', {
+              virtuals: true,
+              versionKey: false,
+              transform: (doc: any, ret: any) => {
+                delete ret._id;
+              },
+            });
+            schema.set('toObject', {
+              virtuals: true,
+              versionKey: false,
+              transform: (doc: any, ret: any) => {
+                delete ret._id;
+              },
+            });
+          });
+          return connection;
+        },
       }),
     }),
     ScheduleModule.forRoot(),
@@ -49,6 +74,9 @@ import { AdminApplicationsModule } from './modules/admin-applications/admin-appl
     PrimeModule,
     MessageTemplatesModule,
     AdminApplicationsModule,
+    WebhooksModule,
+    MemorizationModule,
+    BibleReferenceModule,
   ],
   controllers: [AppController],
   providers: [
@@ -57,4 +85,4 @@ import { AdminApplicationsModule } from './modules/admin-applications/admin-appl
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
-export class AppModule {}
+export class AppModule { }

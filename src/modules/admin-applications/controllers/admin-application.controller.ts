@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { CurrentUser } from 'src/core/decorators/current-user.decorator';
 import { RequestUser } from 'src/core/types/request-user.interface';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/enums/role.enum';
+import { PaginationDto } from 'src/core/dto/pagination.dto';
 
 @ApiTags('Admin Applications')
 @ApiBearerAuth('access-token')
@@ -38,9 +40,8 @@ export class AdminApplicationController {
   @ApiResponse({ status: 403, description: 'Only ADMIN accounts can apply' })
   @ApiResponse({ status: 404, description: 'User or organization not found' })
   @ApiResponse({ status: 409, description: 'A pending application already exists' })
-  async apply(@Body() dto: CreateApplicationDto, @CurrentUser() user: RequestUser) {
-    const data = await this.service.apply(user.id, dto.organizationId);
-    return { success: true, data };
+  apply(@Body() dto: CreateApplicationDto, @CurrentUser() user: RequestUser) {
+    return this.service.apply(user.id, dto.organizationId);
   }
 
   @Get('mine')
@@ -49,9 +50,8 @@ export class AdminApplicationController {
     description: 'Returns the current application record for the authenticated admin, or null if none exists.',
   })
   @ApiResponse({ status: 200, description: 'Application record (or null)' })
-  async getMyApplication(@CurrentUser() user: RequestUser) {
-    const data = await this.service.getMyApplication(user.id);
-    return { success: true, data };
+  getMyApplication(@CurrentUser() user: RequestUser) {
+    return this.service.getMyApplication(user.id);
   }
 
   @Get('organization/:organizationId')
@@ -61,12 +61,12 @@ export class AdminApplicationController {
   })
   @ApiResponse({ status: 200, description: 'List of pending applications' })
   @ApiResponse({ status: 403, description: 'Not the org creator or SUPER_ADMIN' })
-  async listForOrg(
+  listForOrg(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: RequestUser,
+    @Query() pagination: PaginationDto,
   ) {
-    const data = await this.service.listForOrganization(organizationId, user.id, user.role);
-    return { success: true, data };
+    return this.service.listForOrganization(organizationId, user.id, user.role, pagination);
   }
 
   @Post(':id/approve')

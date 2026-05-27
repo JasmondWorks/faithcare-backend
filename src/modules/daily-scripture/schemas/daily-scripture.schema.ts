@@ -23,6 +23,29 @@ export class DailyScripture extends BaseSchema {
 
   @Prop({ default: false })
   isCompleted: boolean;
+
+  @Prop({ type: Date, default: null })
+  completedAt: Date | null;
+
+  /** Personal reflection note the user wrote about this passage */
+  @Prop({ type: String, default: null })
+  personalNotes: string | null;
+
+  /** api.bible chapter ID, present when reading from a plan */
+  @Prop({ type: String, default: null })
+  chapterId: string | null;
+
+  /** api.bible translation/bible ID used for this entry */
+  @Prop({ type: String, default: null })
+  bibleId: string | null;
+
+  /** Links back to the user's active reading plan record */
+  @Prop({ type: Types.ObjectId, ref: 'UserReadingPlan', default: null })
+  userReadingPlanId: Types.ObjectId | null;
+
+  /** Day number within the plan (1-based) */
+  @Prop({ type: Number, default: null })
+  planDay: number | null;
 }
 
 export const DailyScriptureSchema =

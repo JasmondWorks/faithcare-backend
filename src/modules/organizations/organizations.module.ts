@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
 import {
   Organization,
   OrganizationSchema,
@@ -41,6 +42,7 @@ import { PrayerRequestController } from './controllers/prayer-request.controller
 
 @Module({
   imports: [
+    JwtModule.register({}),
     MongooseModule.forFeature([
       { name: Organization.name, schema: OrganizationSchema },
       { name: SalvationRecord.name, schema: SalvationRecordSchema },

@@ -16,7 +16,10 @@ export class PrayerRequestRepository extends BaseRepository<PrayerRequestDocumen
     super(prayerRequestModel);
   }
 
-  async findByOrganization(organizationId: string) {
-    return this.model.find({ organizationId, isDeleted: { $ne: true } }).exec();
+  async findByOrganization(
+    organizationId: string,
+    pagination: { page: number; limit: number } = { page: 1, limit: 20 },
+  ) {
+    return this.paginate({ organizationId }, { ...pagination, sort: { createdAt: -1 } });
   }
 }

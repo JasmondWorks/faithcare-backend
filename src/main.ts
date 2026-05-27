@@ -1,9 +1,9 @@
-console.log('main.ts module evaluation started');
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorFilter } from './core/errors/global-error.filter';
+import { ResponseInterceptor } from './core/interceptors/response.interceptor';
 import cookieParser from 'cookie-parser';
 import envConfig from './config/env.config';
 
@@ -29,6 +29,7 @@ async function bootstrap() {
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new GlobalErrorFilter());
+  app.useGlobalInterceptors(new ResponseInterceptor());
   app.setGlobalPrefix('api/v1', { exclude: ['/'] });
 
   // ── OpenAPI / Swagger ──────────────────────────────────────────
@@ -36,13 +37,13 @@ async function bootstrap() {
     .setTitle('FaithCare API')
     .setDescription(
       'REST API powering FaithCare — a digital pastoral care and spiritual growth platform.\n\n' +
-        '**ChurchCare** (org-side): first-timer/second-timer registration via QR, follow-up tracking, ' +
-        'WhatsApp & bulk SMS messaging, customisable message templates (+ system presets), ' +
-        'dashboard analytics, communities, salvation records, and prayer requests.\n\n' +
-        '**Spiritual Growth** (user-side): daily journal entries, verse of the day (auto-fetched from Bible API), ' +
-        'per-user daily scriptures, and Pomodoro-style focus timer with scripture rewards.\n\n' +
-        '**Real-time**: WebSocket notifications at `/notifications` (Socket.io) — ' +
-        'join room `org:<id>` to receive `first_timer_registered`, `follow_up_due`, `message_sent` events.',
+      '**ChurchCare** (org-side): first-timer/second-timer registration via QR, follow-up tracking, ' +
+      'WhatsApp & bulk SMS messaging, customisable message templates (+ system presets), ' +
+      'dashboard analytics, communities, salvation records, and prayer requests.\n\n' +
+      '**Spiritual Growth** (user-side): daily journal entries, verse of the day (auto-fetched from Bible API), ' +
+      'per-user daily scriptures, and Pomodoro-style focus timer with scripture rewards.\n\n' +
+      '**Real-time**: WebSocket notifications at `/notifications` (Socket.io) — ' +
+      'join room `org:<id>` to receive `first_timer_registered`, `follow_up_due`, `message_sent` events.',
     )
     .setVersion('2.0')
     .addTag(
@@ -122,6 +123,10 @@ async function bootstrap() {
     .addTag(
       'Prime Church',
       'Workforce applications, Trybe membership, and prayer requests',
+    )
+    .addTag(
+      'Webhooks',
+      'Inbound message callbacks from Meta (WhatsApp) and Termii (SMS) — these endpoints are called by the providers, not by the app client',
     )
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

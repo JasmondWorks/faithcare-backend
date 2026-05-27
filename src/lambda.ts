@@ -134,6 +134,10 @@ async function bootstrap(): Promise<void> {
       'Prime Church',
       'Workforce applications, Trybe membership, and prayer requests',
     )
+    .addTag(
+      'Webhooks',
+      'Inbound message callbacks from Meta (WhatsApp) and Termii (SMS) — these endpoints are called by the providers, not by the app client',
+    )
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'access-token',
