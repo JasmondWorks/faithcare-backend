@@ -24,7 +24,7 @@ import { RequestUser } from 'src/core/types/request-user.interface';
 @Roles(Role.USER)
 @Controller('users/metadata')
 export class UserMetaDataController {
-  constructor(private readonly userMetaDataService: UserMetaDataService) {}
+  constructor(private readonly userMetaDataService: UserMetaDataService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create user metadata record (USER only)' })
