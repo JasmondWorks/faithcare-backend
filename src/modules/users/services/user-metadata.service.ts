@@ -92,7 +92,6 @@ export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
       });
     }
     return super.delete(id) as any;
-<<<<<<< HEAD
   }
 
   async getDashboard(userId: string) {
@@ -186,7 +185,5 @@ export class UserMetaDataService extends BaseService<UserMetaDataDocument> {
         },
       },
     };
-=======
->>>>>>> 8d281b409a65de5464e3071ff22536d17257c91f
   }
 }
